@@ -1,22 +1,168 @@
-# 立教英国学院 数学対策 — Full v1.0 RC2
+# 立教数学 Full v1.0 RC2
 
-## 現在の状態
+FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0の目標量を満たす固定類題Bank 411問を統合したRelease Candidate。
 
-- 過去問: 212問
-- 完全段階解説: 212/212問
-- 固定Practice Bank: 411問
-  - L1: 100
-  - L2: 168
-  - Clean Transfer: 77
-  - Retention: 66
-- 合計: 623 Problem IDs
-- 原本参照画像: 31ページ
-- 公式解答: なし
-- 正答Authority: 原本PDF + 独立解答 + 数学的再検算
-- FY26A Q5(3): REVIEW_REQUIRED
+## 現在のコンテンツ
+- 過去問: **212問**
+- 過去問の完全段階解説: **212/212問** (`AUTHORED_SOURCE_GROUNDED_V1`)
+- 固定類題Bank: **411問**
+  - L1: 100問
+  - L2: 168問
+  - Clean Transfer: 77問
+  - Retention: 66問
+- 合計: **623 Problem IDs**
+- 原本PDF参照ページ画像: 31枚（212問すべて原本ページへリンク）
+- テキスト転記prompt: 26問。その他は原本ページ画像を問題文の基準にする。
 
-## Release
+## 学習フロー
+- FY25A Core Diagnostic
+- FY24A/B Training
+- 弱点が深い場合はL1、標準弱点はL2を優先
+- 改善後はClean Transfer
+- Retention専用itemによる遅延確認
+- FY25B Intermediate Transfer
+- FY26B final learner-unseen evaluation
+- FY26A parallel-form confirmation
 
-`v1.0-rc2`
+## Answer Authority
+この学校について公式解答はありません。
+正答は **原本PDF + 独立解答 + 数学的別検算 + 自動採点回帰 + 精査ループ** を内部Authorityとする。
+FY26A Q5(3)は、D=Cも形式的に等積条件を満たすため `REVIEW_REQUIRED` とし、自動Mastery集計から除外する。
+公式小問配点・公式部分点は不明なので、Official Scoreは推定しない。
 
-最後の修正後、観点を変えた2回連続CLEANを達成したRC2成果物です。
+## 実装
+- deterministic safe parser/scorer
+- Diagnostic / Learning / Transfer / Retention / Exam
+- Today
+- Hint ladder / Retry
+- Clean Transfer eligibility (near-duplicate / section motif / FY26 parallel form)
+- Mastery = accuracy + Clean Transfer + Retention
+- localStorage schemaVersion=3
+- legacy migration / Export / Import / checksum / attemptId dedupe
+- noindex / mobile-first
+
+## 起動
+`python -m http.server 8000` などでこのフォルダをHTTP配信する。
+
+## テスト
+- `node --check app.js scoring.js storage.js`
+- `node tests/content.test.js`
+- `node tests/scoring_all.test.js`
+- `node tests/storage.test.js`
+- `node tests/release_invariants.test.js`
+- `python tests/source_page_verify.py`
+- `python tests/bank_math_verify.py`
+- `python tests/fy24a_math_verify.py`
+- `python tests/fy24b_math_verify.py`
+- `python tests/fy25a_full_math_verify.py`
+- `python tests/fy25b_math_verify.py`
+- `python tests/fy26a_math_verify.py`
+- `python tests/fy26b_math_verify.py`
+- `python tests/browser_inmemory_smoke.py`
+- `python tests/bank_mastery_smoke.py`
+
+## 既知の非ブロッカー
+- 公式解答・公式小問配点は存在/入手しない前提
+- FY26A Q5(3)は点一致の曖昧性により `REVIEW_REQUIRED`
+- Cloud sync / IndexedDBは後段
+- 図形Practice Bankは将来さらにdiagram variantを増やせる
+
+## 変更履歴
+
+## v0.5
+Learning Design Freeze v1.0で予定していた固定Practice Bankの規模まで拡張。
+
+- L1: 100
+- L2: 168
+- Clean Transfer: 77
+- Retention: 66
+- 合計: 411
+- 過去問212と合わせて623 Problem IDs
+
+新規351問は、generatorの計算結果だけに依存せず、問題文から数値を再抽出して別ロジックで再計算する独立QAを実施。
+生成時に見つかった相対度数の丸め誤差・平方根問題の変数未指定・二等辺三角形角度の整数化・相似比の大小表現を修正後、351/351 CLEAN。
+
+
+## v0.6 — 過去問の完全段階解説 Batch 1
+FY24数学A 39問について、原本PDFを再確認し、独立解答をもとに**段階解説を1問ずつ執筆**。
+
+- 追加: 39問
+- 既存の詳細解説: FY25A前半26問
+- 詳細解説合計: 65/212
+- 残りscaffold: 147問
+
+図形Q5〜Q9は、原図の条件を再確認し、補助線・相似・中点連結・円すい展開などを含む具体的な解法へ更新。
+
+
+FY24数学A 段階解説 Batch 1 QA: 2回連続CLEAN。詳細解説は65/212問。
+
+
+## v0.7 — 過去問の完全段階解説 Batch 2
+FY24数学B 39問を原本PDFから再確認し、全問を段階解説化。
+
+- 今回追加: 39問
+- 詳細解説累計: **104/212問**
+- 残りscaffold: **108問**
+
+Q5〜Q9では、平行線と円周角、斜辺への高さ、二重相似、放物線と回転体、
+相似の連鎖、正四角錐表面積まで原図に即した具体解法を追加。
+
+
+## v0.8 — FY25数学A 解説完成
+FY25数学Aの未完全だったQ5〜Q9・19問を原本から段階解説化。既存Q1〜Q4・26問と合わせ、FY25Aは45/45問が詳細解説。全体進捗は123/212、残り89問。
+
+
+## v0.9 — FY25数学B 39問 段階解説
+FY25数学Bの全39問を原本PDF 3〜7ページから再確認し、段階解説化。
+
+- 今回追加: 39問
+- 詳細解説累計: **162/212問**
+- 残りscaffold: **50問**
+
+Q5〜Q9では、平行線・円・中点連結、半円内の角の二等分線、
+放物線と平行四辺形、円すい展開図、立方体内の移動点まで原図に即した解法を追加。
+
+
+FY25数学B Batch QA: 2回連続CLEAN。詳細解説は162/212問、残り50問。
+
+
+## v0.10 — FY26数学A 25問 段階解説
+FY26数学Aの全25問を原本PDF 3〜7ページから再確認し、段階解説化。
+
+- 今回追加: 25問
+- 詳細解説累計: **187/212問**
+- 残りscaffold: **25問**
+
+Q3(10)の正五角形スターは黄金比の相似、Q4は直方体の空間対角線と三角形AFGの面積、
+Q5は放物線上の座標・面積まで段階化。
+Q5(3)はD=Cも形式的に成立する曖昧性を明示し、通常想定解(-1,-1)と区別。
+
+
+FY26数学A Batch QA: 2回連続CLEAN。詳細解説は187/212問、残り25問。
+
+
+## v0.11 — FY26数学B 25問 段階解説 / 212問解説完成
+FY26数学Bの全25問を原本PDF 3〜7ページから再確認し、段階解説化。
+
+- 今回追加: 25問
+- 過去問詳細解説: **212/212問**
+- 残りscaffold: **0問**
+
+Q3(5)の円周角・弧、Q3(10)の平行四辺形比、Q4の四面体、
+Q5の放物線・平行四辺形・等積条件まで原図に即した具体解法へ更新。
+
+
+## v1.0 RC1
+Release Candidate gate.
+
+- 過去問: 212/212
+- 過去問段階解説: 212/212
+- Fixed Practice Bank: 411/411
+- Total Problem IDs: 623
+- Official answer key: なし（完成条件から除外済み）
+- Answer authority: 原本 + 独立解答 + 数学的再検算
+- FY26A Q5(3): 曖昧性フラグ / REVIEW_REQUIREDを維持
+
+最終厳格監査で、FY25A前半26問が従来の短いlegacy explanationのままで
+「完全段階解説」と数えられていたことを検出し、全26問を原本ベースの複数step解説へ更新した。
+これにより現在は212/212問すべてが `AUTHORED_SOURCE_GROUNDED_V1`。
