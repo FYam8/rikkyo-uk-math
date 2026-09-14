@@ -1,0 +1,381 @@
+{
+  "version": "v2.0",
+  "explicitCrossExamRelations": [
+    {
+      "groupA": "R24-MATH-A-Q4",
+      "groupB": "R24-MATH-B-Q4",
+      "similarityClass": "SECTION_CORE_MOTIF",
+      "pureTransferEligibleIfExposed": false,
+      "transferScope": "SECTION",
+      "status": "confirmed_by_source_comparison"
+    },
+    {
+      "groupA": "R24-MATH-A-Q4",
+      "groupB": "R25-MATH-B-Q4",
+      "similarityClass": "SECTION_CORE_MOTIF",
+      "pureTransferEligibleIfExposed": false,
+      "transferScope": "SECTION",
+      "status": "confirmed_by_source_comparison"
+    },
+    {
+      "groupA": "R24-MATH-A-Q6",
+      "groupB": "R25-MATH-B-Q6",
+      "similarityClass": "STRUCTURAL_NEAR_DUPLICATE",
+      "pureTransferEligibleIfExposed": false,
+      "transferScope": "QUESTION_OR_SECTION_AS_RECORDED",
+      "status": "confirmed_by_independent_solution_comparison"
+    },
+    {
+      "groupA": "R24-MATH-B-Q4",
+      "groupB": "R25-MATH-B-Q4",
+      "similarityClass": "SECTION_CORE_MOTIF",
+      "pureTransferEligibleIfExposed": false,
+      "transferScope": "SECTION",
+      "status": "confirmed_by_source_comparison"
+    },
+    {
+      "groupA": "R24-MATH-B-Q7",
+      "groupB": "R25-MATH-A-Q9",
+      "similarityClass": "STRUCTURAL_SIBLING",
+      "pureTransferEligibleIfExposed": false,
+      "transferScope": "QUESTION_OR_SECTION_AS_RECORDED",
+      "status": "confirmed_by_independent_solution_comparison"
+    }
+  ],
+  "parallelFormFamilies": [
+    {
+      "id": "R26-MATH-AB",
+      "examA": "R26-MATH-A",
+      "examB": "R26-MATH-B",
+      "slotCount": 25,
+      "slots": [
+        {
+          "slot": "Q1-1",
+          "aQuestionId": "R26-MATH-A-Q1-1",
+          "bQuestionId": "R26-MATH-B-Q1-1",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q1-2",
+          "aQuestionId": "R26-MATH-A-Q1-2",
+          "bQuestionId": "R26-MATH-B-Q1-2",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q1-3",
+          "aQuestionId": "R26-MATH-A-Q1-3",
+          "bQuestionId": "R26-MATH-B-Q1-3",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q1-4",
+          "aQuestionId": "R26-MATH-A-Q1-4",
+          "bQuestionId": "R26-MATH-B-Q1-4",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q1-5",
+          "aQuestionId": "R26-MATH-A-Q1-5",
+          "bQuestionId": "R26-MATH-B-Q1-5",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q1-6",
+          "aQuestionId": "R26-MATH-A-Q1-6",
+          "bQuestionId": "R26-MATH-B-Q1-6",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q1-7",
+          "aQuestionId": "R26-MATH-A-Q1-7",
+          "bQuestionId": "R26-MATH-B-Q1-7",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q2-1",
+          "aQuestionId": "R26-MATH-A-Q2-1",
+          "bQuestionId": "R26-MATH-B-Q2-1",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q2-2",
+          "aQuestionId": "R26-MATH-A-Q2-2",
+          "bQuestionId": "R26-MATH-B-Q2-2",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q2-3",
+          "aQuestionId": "R26-MATH-A-Q2-3",
+          "bQuestionId": "R26-MATH-B-Q2-3",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-1",
+          "aQuestionId": "R26-MATH-A-Q3-1",
+          "bQuestionId": "R26-MATH-B-Q3-1",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-2",
+          "aQuestionId": "R26-MATH-A-Q3-2",
+          "bQuestionId": "R26-MATH-B-Q3-2",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-3",
+          "aQuestionId": "R26-MATH-A-Q3-3",
+          "bQuestionId": "R26-MATH-B-Q3-3",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-4",
+          "aQuestionId": "R26-MATH-A-Q3-4",
+          "bQuestionId": "R26-MATH-B-Q3-4",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-5",
+          "aQuestionId": "R26-MATH-A-Q3-5",
+          "bQuestionId": "R26-MATH-B-Q3-5",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-6",
+          "aQuestionId": "R26-MATH-A-Q3-6",
+          "bQuestionId": "R26-MATH-B-Q3-6",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-7",
+          "aQuestionId": "R26-MATH-A-Q3-7",
+          "bQuestionId": "R26-MATH-B-Q3-7",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-8",
+          "aQuestionId": "R26-MATH-A-Q3-8",
+          "bQuestionId": "R26-MATH-B-Q3-8",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-9",
+          "aQuestionId": "R26-MATH-A-Q3-9",
+          "bQuestionId": "R26-MATH-B-Q3-9",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q3-10",
+          "aQuestionId": "R26-MATH-A-Q3-10",
+          "bQuestionId": "R26-MATH-B-Q3-10",
+          "difficulty": "C",
+          "targetRelevance": {
+            "minimum": "OPTIONAL",
+            "stable": "SHOULD",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q4-1",
+          "aQuestionId": "R26-MATH-A-Q4-1",
+          "bQuestionId": "R26-MATH-B-Q4-1",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q4-2",
+          "aQuestionId": "R26-MATH-A-Q4-2",
+          "bQuestionId": "R26-MATH-B-Q4-2",
+          "difficulty": "C",
+          "targetRelevance": {
+            "minimum": "OPTIONAL",
+            "stable": "SHOULD",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q5-1",
+          "aQuestionId": "R26-MATH-A-Q5-1",
+          "bQuestionId": "R26-MATH-B-Q5-1",
+          "difficulty": "A",
+          "targetRelevance": {
+            "minimum": "MUST",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q5-2",
+          "aQuestionId": "R26-MATH-A-Q5-2",
+          "bQuestionId": "R26-MATH-B-Q5-2",
+          "difficulty": "B",
+          "targetRelevance": {
+            "minimum": "SHOULD",
+            "stable": "MUST",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        },
+        {
+          "slot": "Q5-3",
+          "aQuestionId": "R26-MATH-A-Q5-3",
+          "bQuestionId": "R26-MATH-B-Q5-3",
+          "difficulty": "C",
+          "targetRelevance": {
+            "minimum": "OPTIONAL",
+            "stable": "SHOULD",
+            "safe": "MUST",
+            "status": "provisional_until_cross_exam_freeze"
+          },
+          "pureTransferEligibleAfterMateExposure": false
+        }
+      ],
+      "rule": "If one mate form has been exposed, the other is not counted as pure clean transfer."
+    }
+  ]
+}

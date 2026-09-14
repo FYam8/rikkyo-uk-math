@@ -1,0 +1,88 @@
+{
+  "artifact": "rikkyo_math_fixed_practice_bank_v0_2",
+  "createdAt": "2026-09-14T11:26:35.346444+00:00",
+  "status": "CLEAN_AFTER_CORRECTION",
+  "problemCount": 411,
+  "byLevel": {
+    "L2": 168,
+    "TRANSFER": 77,
+    "RETENTION": 66,
+    "L1": 100
+  },
+  "targetDistributionMatched": true,
+  "familyTargetChecks": {
+    "CALCULATION_FLUENCY": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "ALGEBRA_MANIPULATION": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "EQUATION_SOLVING": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "FUNCTION_CORE_AND_TRANSFER": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "PLANE_GEOMETRY": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "CIRCLE": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "SIMILARITY_AND_RATIO": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "SOLID_GEOMETRY": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "MEASUREMENT": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    },
+    "PROBABILITY_NUMBER_DATA": {
+      "L1": true,
+      "L2": true,
+      "TRANSFER": true,
+      "RETENTION": true
+    }
+  },
+  "verification": {
+    "existing60": "Previously manually/SymPy verified in v0.1 audit.",
+    "new351": "Independently recalculated from the displayed prompt text using a separate prompt parser/recalculator; 351/351 matched answerSpec.",
+    "appScorer": "All 411 bank canonical answers pass the v0.5 deterministic scorer as part of the 623-problem regression."
+  },
+  "correctionsFoundDuringExpansion": [
+    "Relative-frequency generators originally displayed rounded decimals that could imply a different integer count; generator restricted to exact two-decimal frequencies.",
+    "Perfect-square-radical generator originally left n symbolic in the prompt; prompt now prints the actual denominator.",
+    "Isosceles-radius angle generator originally allowed odd center angles while storing an integer floor base angle; center angles are now even.",
+    "Similarity proportional-side wording now enforces small-side ratio < large-side ratio.",
+    "Perfect-square factorization generator now chooses coprime inner coefficients so the displayed factorization is fully factored."
+  ],
+  "result": "CLEAN"
+}

@@ -1,0 +1,992 @@
+{
+  "version": "1.0",
+  "status": "FROZEN_LEARNING_DESIGN",
+  "basis": {
+    "strategyFreeze": "rikkyo_math_strategy_freeze_v1_0.json",
+    "normalizedQuestionRecords": "v2.0",
+    "questionCount": 212,
+    "officialAnswersChecked": false,
+    "officialPointsChecked": false
+  },
+  "practiceFamilies": [
+    {
+      "familyId": "CALCULATION_FLUENCY",
+      "primarySkills": [
+        "CALCULATION"
+      ],
+      "pastExamCount": 32,
+      "weight": "VERY_HIGH",
+      "bankTarget": {
+        "level1": 18,
+        "level2": 24,
+        "transfer": 8,
+        "retention": 8
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "3-5 L1 then 3-5 L2",
+        "methodGap": "0-2 L1 then 3-5 L2",
+        "carelessOrSignError": "2-4 targeted mixed items"
+      },
+      "masteryProfile": "LIGHT_FLUENCY"
+    },
+    {
+      "familyId": "ALGEBRA_MANIPULATION",
+      "primarySkills": [
+        "ALGEBRA"
+      ],
+      "pastExamCount": 45,
+      "weight": "VERY_HIGH",
+      "bankTarget": {
+        "level1": 18,
+        "level2": 28,
+        "transfer": 10,
+        "retention": 10
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2-4 L1 then 3-5 L2",
+        "methodGap": "0-2 L1 then 3-5 L2",
+        "carelessOrSignError": "2-4 targeted mixed items"
+      },
+      "masteryProfile": "LIGHT_TO_STANDARD"
+    },
+    {
+      "familyId": "EQUATION_SOLVING",
+      "primarySkills": [
+        "EQUATION"
+      ],
+      "pastExamCount": 28,
+      "weight": "VERY_HIGH",
+      "bankTarget": {
+        "level1": 12,
+        "level2": 20,
+        "transfer": 8,
+        "retention": 8
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2-4 L1 then 2-4 L2",
+        "methodGap": "0-2 L1 then 2-4 L2",
+        "carelessOrSignError": "2-3 targeted items"
+      },
+      "masteryProfile": "LIGHT_TO_STANDARD"
+    },
+    {
+      "familyId": "FUNCTION_CORE_AND_TRANSFER",
+      "primarySkills": [
+        "FUNCTION"
+      ],
+      "pastExamCount": 25,
+      "weight": "HIGH",
+      "bankTarget": {
+        "level1": 10,
+        "level2": 18,
+        "transfer": 10,
+        "retention": 8
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2-3 L1 then 2-3 L2",
+        "methodGap": "1 L1 check then 2-3 L2",
+        "carelessOrSignError": "1-2 targeted items"
+      },
+      "masteryProfile": "STANDARD_TRANSFER"
+    },
+    {
+      "familyId": "PLANE_GEOMETRY",
+      "primarySkills": [
+        "PLANE_GEOMETRY"
+      ],
+      "pastExamCount": 16,
+      "weight": "HIGH",
+      "bankTarget": {
+        "level1": 8,
+        "level2": 14,
+        "transfer": 8,
+        "retention": 6
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2-3 L1 then 2 L2",
+        "methodGap": "1 prerequisite check then 2-3 L2",
+        "carelessOrDiagramError": "1-2 diagram-reading items"
+      },
+      "masteryProfile": "STANDARD_TRANSFER"
+    },
+    {
+      "familyId": "CIRCLE",
+      "primarySkills": [
+        "CIRCLE"
+      ],
+      "pastExamCount": 9,
+      "weight": "HIGH",
+      "bankTarget": {
+        "level1": 6,
+        "level2": 12,
+        "transfer": 6,
+        "retention": 5
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2 L1 then 2 L2",
+        "methodGap": "1 theorem check then 2 L2",
+        "carelessOrDiagramError": "1-2 diagram-reading items"
+      },
+      "masteryProfile": "STANDARD_TRANSFER"
+    },
+    {
+      "familyId": "SIMILARITY_AND_RATIO",
+      "primarySkills": [
+        "SIMILARITY"
+      ],
+      "pastExamCount": 15,
+      "weight": "HIGH",
+      "bankTarget": {
+        "level1": 8,
+        "level2": 16,
+        "transfer": 8,
+        "retention": 6
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2-3 L1 then 2 L2",
+        "methodGap": "1 correspondence check then 2-3 L2",
+        "carelessOrDiagramError": "1-2 correspondence/ratio items"
+      },
+      "masteryProfile": "STANDARD_TO_HEAVY"
+    },
+    {
+      "familyId": "SOLID_GEOMETRY",
+      "primarySkills": [
+        "SOLID_GEOMETRY"
+      ],
+      "pastExamCount": 21,
+      "weight": "HIGH",
+      "bankTarget": {
+        "level1": 6,
+        "level2": 12,
+        "transfer": 7,
+        "retention": 5
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "1-2 L1 then 1-2 L2",
+        "methodGap": "1 prerequisite check then 1-2 L2",
+        "carelessOrDiagramError": "1 spatial-interpretation item"
+      },
+      "masteryProfile": "HEAVY_TRANSFER"
+    },
+    {
+      "familyId": "MEASUREMENT",
+      "primarySkills": [
+        "MEASUREMENT"
+      ],
+      "pastExamCount": 5,
+      "weight": "MEDIUM",
+      "bankTarget": {
+        "level1": 4,
+        "level2": 8,
+        "transfer": 4,
+        "retention": 4
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "1-2 L1 then 2 L2",
+        "methodGap": "2 L2",
+        "carelessOrDiagramError": "1 boundary/region-identification item"
+      },
+      "masteryProfile": "STANDARD_TRANSFER"
+    },
+    {
+      "familyId": "PROBABILITY_NUMBER_DATA",
+      "primarySkills": [
+        "PROBABILITY",
+        "NUMBER_THEORY",
+        "DATA",
+        "STATISTICS",
+        "WORD_PROBLEM"
+      ],
+      "pastExamCount": 16,
+      "weight": "MEDIUM",
+      "bankTarget": {
+        "level1": 10,
+        "level2": 16,
+        "transfer": 8,
+        "retention": 6
+      },
+      "initialLearnerAssignment": {
+        "knowledgeGap": "2-3 targeted L1 then 2 L2",
+        "methodGap": "2-3 L2",
+        "carelessOrReadingError": "1-2 condition-reading items"
+      },
+      "masteryProfile": "MIXED_STANDARD"
+    }
+  ],
+  "masteryProfiles": {
+    "LIGHT_FLUENCY": {
+      "promotionEvidence": [
+        "At least 3 correct Level-2 items from >=2 fingerprints, without answer-revealing hints.",
+        "One mixed/interleaved check correct under normal time load.",
+        "One retention check correct after a delay."
+      ],
+      "transferRequired": false,
+      "notes": "Clean transfer is useful but not mandatory for elementary arithmetic fluency; mixed-context selection is mandatory."
+    },
+    "LIGHT_TO_STANDARD": {
+      "promotionEvidence": [
+        "At least 2-3 correct Level-2 items from >=2 fingerprints.",
+        "One structurally different mixed/transfer check correct without hint.",
+        "One delayed retention check correct."
+      ],
+      "transferRequired": true
+    },
+    "STANDARD_TRANSFER": {
+      "promotionEvidence": [
+        "At least 2 correct Level-2 items with different surface forms.",
+        "One clean transfer item correct without hint.",
+        "One retention item correct after a delay."
+      ],
+      "transferRequired": true
+    },
+    "STANDARD_TO_HEAVY": {
+      "promotionEvidence": [
+        "At least 2 correct Level-2 items with different diagrams/known-unknown arrangements.",
+        "One clean transfer item correct without hint and without near-duplicate exposure.",
+        "One delayed retention check correct."
+      ],
+      "transferRequired": true
+    },
+    "HEAVY_TRANSFER": {
+      "promotionEvidence": [
+        "At least 1-2 correct Level-2 items after prerequisite gaps are cleared.",
+        "One clean transfer item correct without hint.",
+        "Retention evidence is required when exam time permits; otherwise mark 'improving' rather than 'mastered'."
+      ],
+      "transferRequired": true
+    },
+    "MIXED_STANDARD": {
+      "promotionEvidence": [
+        "Correct performance in at least two different standard subskills.",
+        "One interleaved set containing >=3 skill families with no ordering cue.",
+        "One delayed mixed retention check."
+      ],
+      "transferRequired": true
+    }
+  },
+  "practiceLevelDefinitions": {
+    "L1": "Prerequisite/basic skill repair. Use only when evidence suggests a knowledge/prerequisite gap; not the default destination for every error.",
+    "L2": "Main practice level. Same core mathematics as the target exam band, but not a mere numeric substitution or diagram copy.",
+    "TRANSFER": "Learner-unseen, structurally independent check of the same core capability with a different surface form. Near-duplicates and exposed parallel forms are excluded.",
+    "RETENTION": "Delayed check. May sample prior families but should not rely on remembering a recent worked solution."
+  },
+  "bankDesignRule": {
+    "meaning": "bankTarget is the content pool size to prepare, not the number every learner must solve.",
+    "assignmentRule": "Assign only the minimum evidence needed to resolve the learner's current weakness state.",
+    "generationProhibition": "Do not mass-generate until each generator/fixed problem has answer uniqueness, difficulty, structural similarity and holdout-leakage QA."
+  },
+  "weaknessEvidenceRule": {
+    "states": [
+      "unknown",
+      "learning",
+      "weak",
+      "improving",
+      "mastered"
+    ],
+    "doNotDeclareWeakFromOneError": true,
+    "causeInference": "Error causes remain probabilistic unless supported by work, timing, retries or repeated independent evidence.",
+    "CbandRule": "A C-band error alone does not automatically create a skill weakness; use target relevance and prerequisite evidence."
+  },
+  "retryPolicy": {
+    "learningMode": [
+      "Wrong answer: show minimal correctness feedback only; allow one immediate self-correction before full explanation.",
+      "Second unsuccessful attempt: offer Hint 1 (not the answer).",
+      "If still blocked: Hint 2/3 may reveal theorem or next step.",
+      "Full solution appears after the configured retry/hint ladder or explicit learner request.",
+      "Any answer-revealing hint reduces the attempt's mastery evidence."
+    ],
+    "examDiagnosticHoldout": "No correctness feedback, hints, weakness labels, or explanations before the session ends."
+  },
+  "hintLadder": [
+    "H1: 着眼点だけ",
+    "H2: 使う定理・公式／考え方",
+    "H3: 次の一手",
+    "H4: 中間式または補助線",
+    "H5: 完全解説"
+  ],
+  "interleaving": {
+    "remediation": "At the very start of remediation, allow at most 2-3 same-family items in a row.",
+    "consolidation": "Use mixed sets containing at least 3 skill families; do not preserve historical section ordering.",
+    "transfer": "Must use a different structuralFingerprint or clearly different surface form; STRUCTURAL_NEAR_DUPLICATE is ineligible.",
+    "parallelForms": "The second FY26 A/B form after exposure is confirmation, not clean transfer."
+  },
+  "retention": {
+    "defaultWindows": [
+      "next day",
+      "about 3 days",
+      "about 7 days"
+    ],
+    "adaptiveRule": "Compress/expand windows according to days remaining until the exam; do not use a fixed SRS regardless of exam date.",
+    "evidenceRule": "Retention accuracy is a separate metric from practice accuracy."
+  },
+  "todayRecommendation": {
+    "priorityOrder": [
+      "due retention/review",
+      "high-target-relevance confirmed weakness",
+      "unresolved diagnostic errors",
+      "target-required unknown/unlearned prerequisite",
+      "next training past-exam unit",
+      "extension/C-band work"
+    ],
+    "loadRule": "Build by estimatedMinutesRange, not raw question count.",
+    "completionOptions": [
+      "finish",
+      "continue to next task",
+      "do tomorrow early",
+      "practice another weak skill"
+    ]
+  },
+  "prerequisiteGraph": {
+    "nodes": [
+      "SIGNED_ARITHMETIC",
+      "FRACTION_ARITHMETIC",
+      "RADICAL_BASICS",
+      "ALGEBRAIC_SIMPLIFICATION",
+      "EXPANSION",
+      "FACTORING",
+      "LINEAR_EQUATION",
+      "SIMULTANEOUS_EQUATION",
+      "QUADRATIC_EQUATION",
+      "RATIO_PROPORTION",
+      "ANGLE_BASICS",
+      "PARALLEL_ANGLE_RELATIONS",
+      "PYTHAGOREAN",
+      "COORDINATE_BASICS",
+      "LINE_FROM_TWO_POINTS",
+      "QUADRATIC_FUNCTION_BASIC",
+      "COORDINATE_AREA",
+      "FUNCTION_TRANSFER",
+      "TRIANGLE_SIMILARITY",
+      "SIMILARITY_RATIO_CHAIN",
+      "CIRCLE_ANGLE_BASIC",
+      "CIRCLE_MULTI_THEOREM",
+      "CIRCULAR_MEASUREMENT",
+      "SOLID_FORMULAS",
+      "SOLID_SPATIAL_PYTHAGOREAN",
+      "SOLID_TRANSFER",
+      "PROBABILITY_BASIC",
+      "NUMBER_RADICAL_CONSTRAINTS",
+      "MEAN_BASIC",
+      "RELATIVE_FREQUENCY",
+      "WORD_CONDITION_MODELING",
+      "MIXED_METHOD_SELECTION"
+    ],
+    "edges": [
+      {
+        "from": "SIGNED_ARITHMETIC",
+        "to": "FRACTION_ARITHMETIC"
+      },
+      {
+        "from": "SIGNED_ARITHMETIC",
+        "to": "ALGEBRAIC_SIMPLIFICATION"
+      },
+      {
+        "from": "FRACTION_ARITHMETIC",
+        "to": "ALGEBRAIC_SIMPLIFICATION"
+      },
+      {
+        "from": "RADICAL_BASICS",
+        "to": "ALGEBRAIC_SIMPLIFICATION"
+      },
+      {
+        "from": "ALGEBRAIC_SIMPLIFICATION",
+        "to": "EXPANSION"
+      },
+      {
+        "from": "EXPANSION",
+        "to": "FACTORING"
+      },
+      {
+        "from": "ALGEBRAIC_SIMPLIFICATION",
+        "to": "LINEAR_EQUATION"
+      },
+      {
+        "from": "LINEAR_EQUATION",
+        "to": "SIMULTANEOUS_EQUATION"
+      },
+      {
+        "from": "FACTORING",
+        "to": "QUADRATIC_EQUATION"
+      },
+      {
+        "from": "LINEAR_EQUATION",
+        "to": "QUADRATIC_EQUATION"
+      },
+      {
+        "from": "FRACTION_ARITHMETIC",
+        "to": "RATIO_PROPORTION"
+      },
+      {
+        "from": "ANGLE_BASICS",
+        "to": "PARALLEL_ANGLE_RELATIONS"
+      },
+      {
+        "from": "ANGLE_BASICS",
+        "to": "PYTHAGOREAN"
+      },
+      {
+        "from": "RADICAL_BASICS",
+        "to": "PYTHAGOREAN"
+      },
+      {
+        "from": "PARALLEL_ANGLE_RELATIONS",
+        "to": "TRIANGLE_SIMILARITY"
+      },
+      {
+        "from": "RATIO_PROPORTION",
+        "to": "TRIANGLE_SIMILARITY"
+      },
+      {
+        "from": "TRIANGLE_SIMILARITY",
+        "to": "SIMILARITY_RATIO_CHAIN"
+      },
+      {
+        "from": "RATIO_PROPORTION",
+        "to": "SIMILARITY_RATIO_CHAIN"
+      },
+      {
+        "from": "ANGLE_BASICS",
+        "to": "CIRCLE_ANGLE_BASIC"
+      },
+      {
+        "from": "CIRCLE_ANGLE_BASIC",
+        "to": "CIRCLE_MULTI_THEOREM"
+      },
+      {
+        "from": "TRIANGLE_SIMILARITY",
+        "to": "CIRCLE_MULTI_THEOREM"
+      },
+      {
+        "from": "CIRCULAR_MEASUREMENT",
+        "to": "SOLID_FORMULAS"
+      },
+      {
+        "from": "PYTHAGOREAN",
+        "to": "SOLID_SPATIAL_PYTHAGOREAN"
+      },
+      {
+        "from": "SOLID_FORMULAS",
+        "to": "SOLID_SPATIAL_PYTHAGOREAN"
+      },
+      {
+        "from": "SOLID_SPATIAL_PYTHAGOREAN",
+        "to": "SOLID_TRANSFER"
+      },
+      {
+        "from": "COORDINATE_BASICS",
+        "to": "LINE_FROM_TWO_POINTS"
+      },
+      {
+        "from": "ALGEBRAIC_SIMPLIFICATION",
+        "to": "LINE_FROM_TWO_POINTS"
+      },
+      {
+        "from": "LINEAR_EQUATION",
+        "to": "QUADRATIC_FUNCTION_BASIC"
+      },
+      {
+        "from": "COORDINATE_BASICS",
+        "to": "QUADRATIC_FUNCTION_BASIC"
+      },
+      {
+        "from": "LINE_FROM_TWO_POINTS",
+        "to": "COORDINATE_AREA"
+      },
+      {
+        "from": "QUADRATIC_FUNCTION_BASIC",
+        "to": "COORDINATE_AREA"
+      },
+      {
+        "from": "COORDINATE_AREA",
+        "to": "FUNCTION_TRANSFER"
+      },
+      {
+        "from": "QUADRATIC_EQUATION",
+        "to": "FUNCTION_TRANSFER"
+      },
+      {
+        "from": "PYTHAGOREAN",
+        "to": "FUNCTION_TRANSFER"
+      },
+      {
+        "from": "MEAN_BASIC",
+        "to": "RELATIVE_FREQUENCY"
+      },
+      {
+        "from": "SIGNED_ARITHMETIC",
+        "to": "PROBABILITY_BASIC"
+      },
+      {
+        "from": "RADICAL_BASICS",
+        "to": "NUMBER_RADICAL_CONSTRAINTS"
+      },
+      {
+        "from": "LINEAR_EQUATION",
+        "to": "WORD_CONDITION_MODELING"
+      },
+      {
+        "from": "RATIO_PROPORTION",
+        "to": "WORD_CONDITION_MODELING"
+      },
+      {
+        "from": "ALGEBRAIC_SIMPLIFICATION",
+        "to": "MIXED_METHOD_SELECTION"
+      },
+      {
+        "from": "LINEAR_EQUATION",
+        "to": "MIXED_METHOD_SELECTION"
+      },
+      {
+        "from": "PARALLEL_ANGLE_RELATIONS",
+        "to": "MIXED_METHOD_SELECTION"
+      },
+      {
+        "from": "PROBABILITY_BASIC",
+        "to": "MIXED_METHOD_SELECTION"
+      },
+      {
+        "from": "MEAN_BASIC",
+        "to": "MIXED_METHOD_SELECTION"
+      }
+    ],
+    "validation": {
+      "nodeCount": 32,
+      "edgeCount": 44,
+      "isDAG": true,
+      "topologicalOrder": [
+        "SIGNED_ARITHMETIC",
+        "RADICAL_BASICS",
+        "ANGLE_BASICS",
+        "COORDINATE_BASICS",
+        "CIRCULAR_MEASUREMENT",
+        "MEAN_BASIC",
+        "FRACTION_ARITHMETIC",
+        "PROBABILITY_BASIC",
+        "NUMBER_RADICAL_CONSTRAINTS",
+        "PARALLEL_ANGLE_RELATIONS",
+        "PYTHAGOREAN",
+        "CIRCLE_ANGLE_BASIC",
+        "SOLID_FORMULAS",
+        "RELATIVE_FREQUENCY",
+        "ALGEBRAIC_SIMPLIFICATION",
+        "RATIO_PROPORTION",
+        "SOLID_SPATIAL_PYTHAGOREAN",
+        "EXPANSION",
+        "LINEAR_EQUATION",
+        "LINE_FROM_TWO_POINTS",
+        "TRIANGLE_SIMILARITY",
+        "SOLID_TRANSFER",
+        "FACTORING",
+        "SIMULTANEOUS_EQUATION",
+        "QUADRATIC_FUNCTION_BASIC",
+        "WORD_CONDITION_MODELING",
+        "MIXED_METHOD_SELECTION",
+        "SIMILARITY_RATIO_CHAIN",
+        "CIRCLE_MULTI_THEOREM",
+        "QUADRATIC_EQUATION",
+        "COORDINATE_AREA",
+        "FUNCTION_TRANSFER"
+      ],
+      "result": "CLEAN"
+    }
+  },
+  "metricSeparation": [
+    "Practice Accuracy",
+    "Transfer Accuracy",
+    "Retention Accuracy",
+    "Past Exam Accuracy",
+    "Exam Mode Score",
+    "Hint-Free Accuracy"
+  ],
+  "holdoutAndLeakageRules": {
+    "crossExamRelations": [
+      {
+        "groupA": "R24-MATH-A-Q4",
+        "groupB": "R24-MATH-B-Q4",
+        "similarityClass": "SECTION_CORE_MOTIF",
+        "pureTransferEligibleIfExposed": false,
+        "transferScope": "SECTION",
+        "status": "confirmed_by_source_comparison"
+      },
+      {
+        "groupA": "R24-MATH-A-Q4",
+        "groupB": "R25-MATH-B-Q4",
+        "similarityClass": "SECTION_CORE_MOTIF",
+        "pureTransferEligibleIfExposed": false,
+        "transferScope": "SECTION",
+        "status": "confirmed_by_source_comparison"
+      },
+      {
+        "groupA": "R24-MATH-A-Q6",
+        "groupB": "R25-MATH-B-Q6",
+        "similarityClass": "STRUCTURAL_NEAR_DUPLICATE",
+        "pureTransferEligibleIfExposed": false,
+        "transferScope": "QUESTION_OR_SECTION_AS_RECORDED",
+        "status": "confirmed_by_independent_solution_comparison"
+      },
+      {
+        "groupA": "R24-MATH-B-Q4",
+        "groupB": "R25-MATH-B-Q4",
+        "similarityClass": "SECTION_CORE_MOTIF",
+        "pureTransferEligibleIfExposed": false,
+        "transferScope": "SECTION",
+        "status": "confirmed_by_source_comparison"
+      },
+      {
+        "groupA": "R24-MATH-B-Q7",
+        "groupB": "R25-MATH-A-Q9",
+        "similarityClass": "STRUCTURAL_SIBLING",
+        "pureTransferEligibleIfExposed": false,
+        "transferScope": "QUESTION_OR_SECTION_AS_RECORDED",
+        "status": "confirmed_by_independent_solution_comparison"
+      }
+    ],
+    "parallelFormFamilies": [
+      {
+        "id": "R26-MATH-AB",
+        "examA": "R26-MATH-A",
+        "examB": "R26-MATH-B",
+        "slotCount": 25,
+        "slots": [
+          {
+            "slot": "Q1-1",
+            "aQuestionId": "R26-MATH-A-Q1-1",
+            "bQuestionId": "R26-MATH-B-Q1-1",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q1-2",
+            "aQuestionId": "R26-MATH-A-Q1-2",
+            "bQuestionId": "R26-MATH-B-Q1-2",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q1-3",
+            "aQuestionId": "R26-MATH-A-Q1-3",
+            "bQuestionId": "R26-MATH-B-Q1-3",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q1-4",
+            "aQuestionId": "R26-MATH-A-Q1-4",
+            "bQuestionId": "R26-MATH-B-Q1-4",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q1-5",
+            "aQuestionId": "R26-MATH-A-Q1-5",
+            "bQuestionId": "R26-MATH-B-Q1-5",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q1-6",
+            "aQuestionId": "R26-MATH-A-Q1-6",
+            "bQuestionId": "R26-MATH-B-Q1-6",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q1-7",
+            "aQuestionId": "R26-MATH-A-Q1-7",
+            "bQuestionId": "R26-MATH-B-Q1-7",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q2-1",
+            "aQuestionId": "R26-MATH-A-Q2-1",
+            "bQuestionId": "R26-MATH-B-Q2-1",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q2-2",
+            "aQuestionId": "R26-MATH-A-Q2-2",
+            "bQuestionId": "R26-MATH-B-Q2-2",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q2-3",
+            "aQuestionId": "R26-MATH-A-Q2-3",
+            "bQuestionId": "R26-MATH-B-Q2-3",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-1",
+            "aQuestionId": "R26-MATH-A-Q3-1",
+            "bQuestionId": "R26-MATH-B-Q3-1",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-2",
+            "aQuestionId": "R26-MATH-A-Q3-2",
+            "bQuestionId": "R26-MATH-B-Q3-2",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-3",
+            "aQuestionId": "R26-MATH-A-Q3-3",
+            "bQuestionId": "R26-MATH-B-Q3-3",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-4",
+            "aQuestionId": "R26-MATH-A-Q3-4",
+            "bQuestionId": "R26-MATH-B-Q3-4",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-5",
+            "aQuestionId": "R26-MATH-A-Q3-5",
+            "bQuestionId": "R26-MATH-B-Q3-5",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-6",
+            "aQuestionId": "R26-MATH-A-Q3-6",
+            "bQuestionId": "R26-MATH-B-Q3-6",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-7",
+            "aQuestionId": "R26-MATH-A-Q3-7",
+            "bQuestionId": "R26-MATH-B-Q3-7",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-8",
+            "aQuestionId": "R26-MATH-A-Q3-8",
+            "bQuestionId": "R26-MATH-B-Q3-8",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-9",
+            "aQuestionId": "R26-MATH-A-Q3-9",
+            "bQuestionId": "R26-MATH-B-Q3-9",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q3-10",
+            "aQuestionId": "R26-MATH-A-Q3-10",
+            "bQuestionId": "R26-MATH-B-Q3-10",
+            "difficulty": "C",
+            "targetRelevance": {
+              "minimum": "OPTIONAL",
+              "stable": "SHOULD",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q4-1",
+            "aQuestionId": "R26-MATH-A-Q4-1",
+            "bQuestionId": "R26-MATH-B-Q4-1",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q4-2",
+            "aQuestionId": "R26-MATH-A-Q4-2",
+            "bQuestionId": "R26-MATH-B-Q4-2",
+            "difficulty": "C",
+            "targetRelevance": {
+              "minimum": "OPTIONAL",
+              "stable": "SHOULD",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q5-1",
+            "aQuestionId": "R26-MATH-A-Q5-1",
+            "bQuestionId": "R26-MATH-B-Q5-1",
+            "difficulty": "A",
+            "targetRelevance": {
+              "minimum": "MUST",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q5-2",
+            "aQuestionId": "R26-MATH-A-Q5-2",
+            "bQuestionId": "R26-MATH-B-Q5-2",
+            "difficulty": "B",
+            "targetRelevance": {
+              "minimum": "SHOULD",
+              "stable": "MUST",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          },
+          {
+            "slot": "Q5-3",
+            "aQuestionId": "R26-MATH-A-Q5-3",
+            "bQuestionId": "R26-MATH-B-Q5-3",
+            "difficulty": "C",
+            "targetRelevance": {
+              "minimum": "OPTIONAL",
+              "stable": "SHOULD",
+              "safe": "MUST",
+              "status": "provisional_until_cross_exam_freeze"
+            },
+            "pureTransferEligibleAfterMateExposure": false
+          }
+        ],
+        "rule": "If one mate form has been exposed, the other is not counted as pure clean transfer."
+      }
+    ],
+    "rules": [
+      "Same problem or direct/structural near-duplicate is never clean-transfer evidence after exposure.",
+      "Repeated section ordering can cue method selection; section-level clean transfer is blocked where registry says so.",
+      "Past Exam Accuracy, Transfer Accuracy, Retention Accuracy and Exam Mode Score are separate metrics.",
+      "A repeated diagnostic score is not evidence of improvement by itself."
+    ]
+  },
+  "changeControl": {
+    "rule": "Any later change to mastery thresholds, bank targets, prerequisite edges or transfer eligibility requires a new learning-design version and audit trail.",
+    "officialDataArrival": "Official answers/points may trigger re-evaluation, but must not silently overwrite historical attempt interpretation."
+  }
+}

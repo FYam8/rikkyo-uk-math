@@ -1,0 +1,35 @@
+{
+  "artifact": "rikkyo_math_explanations_FY25A_remaining19_v1_0",
+  "createdAt": "2026-09-14T13:43:43.277097+00:00",
+  "scope": {
+    "newlyAuthored": 19,
+    "FY25ATotalDetailed": 45,
+    "globalDetailed": 123,
+    "globalTotal": 212,
+    "remaining": 89
+  },
+  "officialAnswersAvailable": false,
+  "authorityModel": "source PDF + independent mathematical solution + regression tests",
+  "review1": {
+    "perspective": "source_math_and_explanation_integrity",
+    "result": "CLEAN",
+    "checks": [
+      "Q5-Q9 source diagrams/text re-read",
+      "19/19 explanation payload integrity",
+      "independent math recheck Q5-Q9"
+    ],
+    "errors": []
+  },
+  "review2": {
+    "perspective": "application_regression_and_delivery",
+    "result": "CLEAN",
+    "checks": [
+      "623 canonical answer regression retained",
+      "411 Practice Bank verification retained",
+      "Chromium smoke retained",
+      "HTTP static delivery retained"
+    ]
+  },
+  "twoConsecutiveCleanAchieved": true,
+  "nextBatch": "R25-MATH-B 39 questions"
+}

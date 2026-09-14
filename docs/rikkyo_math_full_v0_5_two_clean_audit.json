@@ -1,0 +1,62 @@
+{
+  "artifact": "rikkyo_math_full_v0_5",
+  "createdAt": "2026-09-14T11:27:18.244812+00:00",
+  "reviewPolicy": "After the last correction, require two consecutive clean reviews.",
+  "scope": {
+    "pastExamQuestions": 212,
+    "practiceBank": 411,
+    "totalProblemIds": 623,
+    "bankByLevel": {
+      "L1": 100,
+      "L2": 168,
+      "TRANSFER": 77,
+      "RETENTION": 66
+    },
+    "families": 10
+  },
+  "correctionsBeforeCleanReviews": [
+    "Fixed generated relative-frequency items so displayed decimals imply the stored integer count exactly.",
+    "Fixed generated perfect-square-radical items to print the actual denominator instead of an undefined n.",
+    "Restricted radius-isosceles center angles to even values to avoid accidental floor rounding.",
+    "Enforced small:large ordering in proportional-side similarity wording.",
+    "Made perfect-square factorization inner coefficients coprime so answers are fully factored.",
+    "Added L1 to Practice filters.",
+    "Changed Today recommendation so repeated severe weakness (<40% after weakness threshold) prefers L1 before L2."
+  ],
+  "review1": {
+    "perspective": "static_content_scoring_storage_and_bank_math",
+    "result": "CLEAN",
+    "checks": [
+      "JavaScript syntax CLEAN.",
+      "212 past-exam + 411 practice-bank content integrity CLEAN.",
+      "623/623 canonical answer grading CLEAN plus wrong/form controls.",
+      "Storage/Migration/Import unit tests CLEAN.",
+      "Bank mastery/Today test CLEAN, including low-accuracy L1 routing.",
+      "Existing 60 bank items retain prior v0.1 verification.",
+      "New 351 generated items independently recalculated from displayed prompts: 351/351 CLEAN.",
+      "All 10 family counts exactly match Learning Design Freeze v1.0 bank targets."
+    ]
+  },
+  "review2": {
+    "perspective": "browser_functional_and_http_delivery",
+    "result": "CLEAN",
+    "checks": [
+      "Chromium in-memory functional smoke CLEAN.",
+      "Diagnostic/Exam pre-submit metadata leakage remains blocked.",
+      "Practice retry/hint behavior remains CLEAN.",
+      "FY26A Q5(3) ambiguity handling remains REVIEW_REQUIRED.",
+      "FY26 parallel-form transfer leakage block remains CLEAN.",
+      "390px mobile overflow smoke remains CLEAN.",
+      "Static HTTP delivery of index and 411-bank JSON CLEAN."
+    ]
+  },
+  "twoConsecutiveCleanAchieved": true,
+  "knownOpenWork": [
+    "Past-exam official answers do not exist; independent-solution authority model remains in force.",
+    "Official small-question point allocations do not exist.",
+    "186 past-exam questions still use structured explanation scaffolds rather than fully authored step-by-step explanations.",
+    "Generated bank geometry is primarily text-described; richer diagram variants can still be added.",
+    "Cloud sync / IndexedDB remains deferred."
+  ],
+  "nextStep": "Upgrade the remaining 186 past-exam explanation scaffolds to full step-by-step explanations and add richer geometry diagram variants, then run full regression again."
+}

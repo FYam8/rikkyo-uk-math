@@ -1,0 +1,697 @@
+{
+  "artifact": "rikkyo_math_data_model_scoring_v1_2",
+  "schemaVersion": 1,
+  "status": "FROZEN_DATA_MODEL_AND_SCORING_V1_2",
+  "subject": "数学",
+  "school": "立教英国学院",
+  "basis": {
+    "strategyFreeze": "rikkyo_math_strategy_freeze_v1_0.json",
+    "learningDesignFreeze": "rikkyo_math_learning_design_freeze_v1_0.json",
+    "normalizedQuestionRecordsVersion": "v2.0",
+    "questionCount": 212,
+    "officialAnswersChecked": false,
+    "officialPointsChecked": false,
+    "knownOpenChecks": [
+      "Official point allocation / partial-credit rules",
+      "FY26A Q5(3) remains internally ambiguous and must stay REVIEW_REQUIRED unless a project convention is explicitly adopted"
+    ],
+    "officialAnswerKeyStatus": "not_available",
+    "internalAnswerAuthority": "independent_solution_plus_two_clean_qa"
+  },
+  "designPrinciples": {
+    "sourceOfTruth": [
+      "Question/Exam/Asset master data",
+      "Attempt events",
+      "Versioned grading specifications"
+    ],
+    "derivedNotSourceOfTruth": [
+      "Accuracy",
+      "Mastery",
+      "Weakness",
+      "Streak",
+      "SkillState",
+      "TargetScoreCoverage"
+    ],
+    "stableIdRule": "Published IDs are immutable and never reused.",
+    "versionRule": "Problem content, answerSpec, scoreSpec, rubric and generator versions are tracked independently.",
+    "officialVsLearningScore": "OfficialScore and LearningScore are strictly separated.",
+    "safeMathParser": "No JavaScript eval or arbitrary code execution; only whitelisted grammar.",
+    "aiScoringRule": "Deterministic scoring for current numeric/expression/set/coordinate items. AI reserved for future proof/explanation forms with explicit rubric.",
+    "answerAuthorityPolicy": "No official answer key exists. Release correctness is based on independent solution, source comparison, automated validation, and two consecutive CLEAN reviews. Ambiguous items remain review-required rather than forced."
+  },
+  "enums": {
+    "lifecycleStatus": [
+      "draft",
+      "active",
+      "retired"
+    ],
+    "examRole": [
+      "training",
+      "diagnostic",
+      "transfer",
+      "retention",
+      "evaluation",
+      "confirmation"
+    ],
+    "learnerExposureStatus": [
+      "unseen",
+      "seen",
+      "practiced"
+    ],
+    "masteryState": [
+      "unknown",
+      "learning",
+      "weak",
+      "improving",
+      "mastered"
+    ],
+    "answerTypes": [
+      "NUMERIC_ANSWER",
+      "EXPRESSION",
+      "SHORT_ANSWER",
+      "MULTI_STEP",
+      "MULTIPLE_CHOICE",
+      "PROOF",
+      "EXPLANATION",
+      "GRAPH",
+      "CONSTRUCTION"
+    ],
+    "errorCause": [
+      "KNOWLEDGE_GAP",
+      "METHOD_GAP",
+      "CALCULATION_ERROR",
+      "SIGN_ERROR",
+      "READING_ERROR",
+      "DIAGRAM_ERROR",
+      "CONDITION_MISREAD",
+      "CARELESS_ERROR",
+      "TIME_PRESSURE",
+      "INCOMPLETE_REASONING"
+    ],
+    "dependencyType": [
+      "NONE",
+      "PROMPT_CONTEXT",
+      "PRIOR_ANSWER_REQUIRED"
+    ],
+    "scoreKind": [
+      "official",
+      "learning"
+    ]
+  },
+  "entities": {
+    "Exam": {
+      "required": [
+        "examId",
+        "schoolId",
+        "year",
+        "examType",
+        "subject",
+        "timeLimitMinutes",
+        "maxScore",
+        "role",
+        "lifecycleStatus"
+      ],
+      "fields": {
+        "examId": "stable string ID",
+        "schoolId": "stable school ID",
+        "year": "integer",
+        "examType": "A/B/etc.",
+        "subject": "数学",
+        "timeLimitMinutes": "official when known; null otherwise",
+        "maxScore": "official when known; null otherwise",
+        "role": "examRole",
+        "parallelFormFamilyId": "nullable",
+        "instructions": "verbatim/structured exam instructions",
+        "toolPolicy": {
+          "calculatorAllowed": "boolean|null",
+          "rulerAllowed": "boolean|null",
+          "compassAllowed": "boolean|null",
+          "other": "array"
+        },
+        "sourceDocument": "source PDF reference",
+        "contentVersion": "integer",
+        "lifecycleStatus": "draft|active|retired"
+      }
+    },
+    "QuestionGroup": {
+      "required": [
+        "groupId",
+        "examId",
+        "majorQuestion"
+      ],
+      "fields": {
+        "groupId": "stable ID",
+        "examId": "Exam.examId",
+        "majorQuestion": "integer/string",
+        "sharedContextId": "nullable",
+        "sectionTemplateFingerprint": "nullable",
+        "parallelFormFamilyId": "nullable",
+        "crossExamStructuralRelations": "array",
+        "sourcePdfPage": "integer|null",
+        "sourcePrintedPage": "integer|null"
+      }
+    },
+    "SharedContext": {
+      "required": [
+        "sharedContextId",
+        "examId",
+        "description"
+      ],
+      "fields": {
+        "sharedContextId": "stable ID",
+        "examId": "Exam.examId",
+        "description": "text",
+        "assetRefs": "array[Asset.assetId]",
+        "sourceVerificationStatus": "unverified|transcribed|answer_checked|independently_solved|source_verified"
+      }
+    },
+    "Question": {
+      "required": [
+        "id",
+        "examId",
+        "majorQuestion",
+        "minorQuestion",
+        "answerType",
+        "primarySkill",
+        "skillTags",
+        "difficulty",
+        "answerSpecVersion",
+        "contentVersion",
+        "lifecycleStatus",
+        "sourceDocument",
+        "sourceVerificationStatus"
+      ],
+      "fields": {
+        "id": "stable immutable ID, e.g. R25-MATH-A-Q2-3",
+        "examId": "Exam.examId",
+        "majorQuestion": "integer/string",
+        "minorQuestion": "integer/string",
+        "sourceType": "PAST_EXAM|FIXED_PRACTICE|GENERATED_PRACTICE|TRANSFER|RETENTION",
+        "answerType": "answerTypes enum",
+        "primarySkill": "normalized taxonomy",
+        "subSkill": "normalized subtype",
+        "skillTags": "array",
+        "knowledgeTags": "array",
+        "strategyTags": "array",
+        "skillPrerequisites": "array[skillId]",
+        "difficulty": "A|B|C (internal analytical label)",
+        "difficultyStatus": "provisional|frozen",
+        "estimatedMinutesRange": "[min,max]",
+        "timeEstimateConfidence": "low|medium|high",
+        "points": "official points or null",
+        "estimatedPoints": "internal estimate or null",
+        "pointsSource": "official|estimated|unknown",
+        "targetRelevance": {
+          "minimum": "MUST|SHOULD|OPTIONAL",
+          "stable": "MUST|SHOULD|OPTIONAL",
+          "safe": "MUST|SHOULD|OPTIONAL"
+        },
+        "practiceNeed": "HIGH|MEDIUM|TARGETED|LOW",
+        "sharedContextId": "nullable",
+        "dependsOnQuestionIds": "logical dependency only",
+        "dependencyDetails": "array",
+        "helpfulPriorResultQuestionIds": "not a logical dependency",
+        "structuralFingerprint": "question-level structure fingerprint",
+        "sectionTemplateFingerprint": "kept on QuestionGroup, not duplicated here",
+        "parallelFormFamilyId": "nullable",
+        "parallelFormSlot": "nullable",
+        "assetRefs": "array[Asset.assetId]",
+        "responseSlots": "array of answer-slot definitions",
+        "answerSpecVersion": "integer",
+        "scoreSpecVersion": "integer|null",
+        "rubricVersion": "integer|null",
+        "contentVersion": "integer",
+        "requiresReevaluation": "boolean",
+        "lifecycleStatus": "draft|active|retired",
+        "active": "boolean cache; must agree with lifecycleStatus",
+        "sourceDocument": "source reference",
+        "sourcePdfPage": "integer|null",
+        "sourcePrintedPage": "integer|null",
+        "sourceQuestionLabel": "text",
+        "sourceVerificationStatus": "verification state",
+        "officialAnswerVerification": "not_available|internal_verified|officially_checked",
+        "answerAmbiguityStatus": "none|flagged",
+        "officialCheckPriority": "normal|high|critical",
+        "answerAuthority": "independent_solution_plus_internal_qa|official_key"
+      }
+    },
+    "Asset": {
+      "required": [
+        "assetId",
+        "type",
+        "sourceReference",
+        "lifecycleStatus"
+      ],
+      "fields": {
+        "assetId": "stable ID",
+        "questionId": "nullable",
+        "groupId": "nullable",
+        "type": "DIAGRAM|TABLE|GRAPH|IMAGE|EXPLANATION_DIAGRAM",
+        "src": "runtime storage path/URL; null while only source-region metadata exists",
+        "alt": "accessible description",
+        "sourceReference": {
+          "sourceDocument": "PDF reference",
+          "sourcePdfPage": "integer",
+          "sourcePrintedPage": "integer|null"
+        },
+        "purpose": "problem|explanation",
+        "assetEssential": "boolean",
+        "contentVersion": "integer",
+        "lifecycleStatus": "draft|active|retired"
+      },
+      "rule": "Problem assets and explanation assets are separate; no solution markings may leak into problem assets."
+    },
+    "AnswerSpec": {
+      "required": [
+        "answerSpecVersion",
+        "type"
+      ],
+      "fields": {
+        "answerSpecVersion": "integer",
+        "expected": "typed canonical target",
+        "accepted": "explicit alternative forms",
+        "tolerance": "numeric absolute/relative tolerance when needed",
+        "equivalenceAllowed": "boolean",
+        "factorizedFormRequired": "boolean",
+        "expandedFormRequired": "boolean",
+        "orderIndependent": "boolean",
+        "unitPolicy": {
+          "sourceUnitStatus": "stated|implied|not_stated",
+          "requiredForOfficialScore": "boolean|null",
+          "acceptedUnits": "array"
+        },
+        "domainConstraint": "nullable",
+        "normalizationRules": "typed per answer kind",
+        "ambiguityNotes": "nullable",
+        "type": [
+          "integer",
+          "numeric",
+          "rational",
+          "expression",
+          "factorized_expression",
+          "equation",
+          "solution_set",
+          "multi_response",
+          "probability",
+          "angle",
+          "interval",
+          "ratio",
+          "coordinate",
+          "coordinate_set",
+          "pi_expression",
+          "radical_expression",
+          "label",
+          "integer_set",
+          "parameter_value",
+          "ratio_value"
+        ]
+      }
+    },
+    "ScoreSpec": {
+      "required": [
+        "scoreSpecVersion",
+        "scoreKind"
+      ],
+      "fields": {
+        "scoreSpecVersion": "integer",
+        "scoreKind": "official|learning",
+        "maxScore": "number|null",
+        "slotWeights": "nullable; official only if official source known",
+        "partialCreditRules": "array",
+        "errorCarriedForwardAllowed": "boolean",
+        "source": "official|internal_learning|unknown",
+        "compatibilityRule": "how old attempts are treated after spec changes"
+      }
+    },
+    "Attempt": {
+      "required": [
+        "attemptId",
+        "problemId",
+        "contentVersion",
+        "answerSpecVersion",
+        "answerSnapshot",
+        "startedAt",
+        "submittedAt",
+        "deviceId"
+      ],
+      "fields": {
+        "attemptId": "UUID-like stable ID",
+        "problemId": "Question.id or generated problem ID",
+        "contentVersion": "version seen by learner",
+        "answerSpecVersion": "version used to grade",
+        "scoreSpecVersion": "nullable",
+        "rubricVersion": "nullable",
+        "generatorVersion": "nullable",
+        "generationSeed": "nullable",
+        "generatedParams": "nullable",
+        "problemSnapshot": "recommended for generated problems",
+        "answerSnapshot": "raw submitted answer, slot by slot",
+        "normalizedAnswerSnapshot": "derived normalized form",
+        "correct": "boolean|null",
+        "officialScore": "number|null",
+        "learningScore": "number|null",
+        "startedAt": "timestamp",
+        "submittedAt": "timestamp",
+        "activeDurationMs": "number|null",
+        "hintEvents": "array",
+        "retryCount": "integer",
+        "mode": "learning|diagnostic|exam|transfer|retention",
+        "learnerExposureStatusBeforeAttempt": "unseen|seen|practiced",
+        "transferEligibleAtAttempt": "boolean",
+        "errorCauseCandidates": "array with confidence",
+        "deviceId": "non-auth device identifier",
+        "sessionId": "Session.sessionId",
+        "environment": "production|test|qa"
+      },
+      "rule": "Attempt is immutable event data. Corrections create new derived grading records or re-evaluation metadata; do not rewrite history silently."
+    },
+    "GradeResult": {
+      "required": [
+        "gradeResultId",
+        "attemptId",
+        "graderVersion",
+        "createdAt"
+      ],
+      "fields": {
+        "gradeResultId": "stable ID",
+        "attemptId": "Attempt.attemptId",
+        "graderVersion": "deterministic grader version",
+        "answerSpecVersion": "integer",
+        "scoreSpecVersion": "integer|null",
+        "isCorrect": "boolean|null",
+        "officialScore": "number|null",
+        "learningScore": "number|null",
+        "slotResults": "array",
+        "feedbackCode": "nullable",
+        "requiresHumanOrOfficialReview": "boolean",
+        "createdAt": "timestamp"
+      }
+    },
+    "SkillEvidence": {
+      "required": [
+        "evidenceId",
+        "attemptId",
+        "skillId",
+        "evidenceType"
+      ],
+      "fields": {
+        "evidenceId": "stable ID",
+        "attemptId": "Attempt.attemptId",
+        "skillId": "taxonomy ID",
+        "difficultyBand": "A|B|C",
+        "evidenceType": "practice|transfer|retention|past_exam|exam",
+        "weight": "derived numeric evidence weight",
+        "hintFree": "boolean",
+        "transferEligible": "boolean",
+        "correct": "boolean|null",
+        "activeDurationMs": "number|null",
+        "errorCauseCandidates": "array",
+        "createdAt": "timestamp"
+      }
+    },
+    "SkillStateCache": {
+      "required": [
+        "skillId",
+        "state",
+        "computedAt",
+        "algorithmVersion"
+      ],
+      "fields": {
+        "skillId": "taxonomy ID",
+        "state": "unknown|learning|weak|improving|mastered",
+        "confidence": "0..1",
+        "byDifficulty": "A/B/C substate",
+        "computedFromEvidenceIds": "array",
+        "computedAt": "timestamp",
+        "algorithmVersion": "version"
+      },
+      "rule": "Cache only; recomputable from Attempt/SkillEvidence."
+    },
+    "ReviewItem": {
+      "required": [
+        "reviewItemId",
+        "skillId",
+        "dueWindowStart",
+        "status"
+      ],
+      "fields": {
+        "reviewItemId": "stable ID",
+        "skillId": "taxonomy ID",
+        "problemCandidateIds": "array",
+        "dueWindowStart": "timestamp",
+        "dueWindowEnd": "timestamp|null",
+        "reason": "retention|weakness|diagnostic_error|target_gap",
+        "priority": "number",
+        "status": "pending|done|skipped|expired",
+        "createdFromEvidenceIds": "array"
+      }
+    },
+    "Session": {
+      "required": [
+        "sessionId",
+        "mode",
+        "startedAt",
+        "problemRefs"
+      ],
+      "fields": {
+        "sessionId": "stable ID",
+        "mode": "learning|diagnostic|exam|transfer|retention",
+        "examId": "nullable",
+        "problemRefs": "ordered problem IDs or generated-instance IDs",
+        "currentIndex": "integer",
+        "answerDrafts": "map",
+        "submittedProblemIds": "array",
+        "startedAt": "timestamp",
+        "lastActiveAt": "timestamp",
+        "finishedAt": "timestamp|null",
+        "resumeVersion": "integer",
+        "generationSnapshot": "for generated sessions",
+        "status": "active|finished|abandoned"
+      },
+      "rule": "Reload/Resume must not turn submitted answers back into unsubmitted answers."
+    },
+    "LearnerExposure": {
+      "required": [
+        "learnerId",
+        "problemOrExamId",
+        "status"
+      ],
+      "fields": {
+        "learnerId": "local/cloud learner ID",
+        "problemOrExamId": "question/group/exam/family ID",
+        "status": "unseen|seen|practiced",
+        "firstSeenAt": "timestamp|null",
+        "lastSeenAt": "timestamp|null"
+      }
+    },
+    "StorageEnvelope": {
+      "required": [
+        "schemaVersion",
+        "namespace",
+        "exportedAt"
+      ],
+      "fields": {
+        "schemaVersion": "integer",
+        "namespace": "production|test|qa",
+        "exportedAt": "timestamp",
+        "attempts": "array",
+        "sessions": "array",
+        "reviewItems": "array",
+        "skillStateCache": "array",
+        "learnerExposure": "array",
+        "device": {
+          "deviceId": "string",
+          "nickname": "string|null",
+          "lastSync": "timestamp|null"
+        },
+        "checksum": "nullable"
+      }
+    }
+  },
+  "scoringEngine": {
+    "version": "math-grader-v1",
+    "parser": {
+      "policy": "whitelist grammar only; never eval",
+      "maxInputLength": 500,
+      "maxAstNodes": 200,
+      "maxNumericMagnitude": "implementation-limited",
+      "allowedSymbols": [
+        "0-9",
+        "x",
+        "y",
+        "a",
+        "b",
+        "m",
+        "n",
+        "r",
+        "pi",
+        "sqrt",
+        "+",
+        "-",
+        "*",
+        "/",
+        "^",
+        "(",
+        ")",
+        "=",
+        ",",
+        "<",
+        ">",
+        "≤",
+        "≥",
+        "±"
+      ]
+    },
+    "normalization": {
+      "whitespace": "ignore",
+      "unicode": "normalize minus, multiplication signs, π, √, ≤, ≥",
+      "fractions": "reduce for comparison",
+      "decimals": "convert to exact rational when finite unless tolerance specified",
+      "expressions": "safe parse and symbolic canonicalization",
+      "solutionSets": "order-independent where answerSpec says so",
+      "ratios": "reduce by common nonzero factor",
+      "coordinates": "ordered pair order is significant",
+      "intervals": "normalize equivalent inequality/interval forms without changing endpoint inclusion"
+    },
+    "answerKindRules": {
+      "integer_numeric": "exact unless tolerance explicitly configured",
+      "rational": "equivalent reduced fractions accepted; decimal acceptance follows answerSpec",
+      "radical_expression": "symbolic equivalence accepted; no floating-only comparison for exact answers",
+      "pi_expression": "π kept symbolic",
+      "expression": "mathematical equivalence allowed only when answerSpec.equivalenceAllowed=true",
+      "factorized_expression": "mathematical equivalence plus required factorized form",
+      "expanded_expression": "mathematical equivalence plus required expanded form",
+      "equation": "equivalent equations accepted, with required variable/form constraints",
+      "solution_set": "compare sets and multiplicity only when mathematically relevant",
+      "multi_response": "grade each slot independently; overall correctness follows all required slots",
+      "probability": "exact rational comparison; enforce 0≤p≤1",
+      "angle": "numeric exactness + semantic degree unit",
+      "ratio": "scale-equivalent ordered ratios accepted",
+      "coordinate": "ordered coordinates; domain constraints checked",
+      "coordinate_set": "set of ordered coordinates, outer order-independent if configured",
+      "interval": "endpoint/open-closed semantics preserved",
+      "parameter_value": "Treat as a typed scalar/parameter assignment; equivalent scalar form accepted according to answerSpec.",
+      "ratio_value": "Treat as an exact rational ratio value; equivalent rational forms accepted according to answerSpec."
+    },
+    "unitPolicy": {
+      "default": "Do not invent a required unit when the source does not state one.",
+      "officialScore": "Require a unit only when official/source rule confirms it.",
+      "learningScore": "May warn about missing expected unit without converting it into official-point loss when official rule is unknown."
+    },
+    "partialCredit": {
+      "official": "No guessed official partial credit. Use only official ScoreSpec when available.",
+      "learning": "Slot-level / step-level learning score permitted for multi-response and error-carried-forward learning feedback.",
+      "errorCarriedForward": "Never add to OfficialScore unless official rules support it."
+    },
+    "ambiguityHandling": {
+      "rule": "If answerSpec is internally ambiguous, deterministic grading returns REVIEW_REQUIRED and the item is excluded from exact accuracy/mastery until an explicit project convention resolves it.",
+      "knownCurrentCase": "R26-MATH-A-Q5-3"
+    }
+  },
+  "versionCompatibility": {
+    "attemptRule": "Attempt stores the versions actually seen/used.",
+    "minorContentFix": "Keep question ID, increment contentVersion.",
+    "gradingOnlyFix": "Keep question ID/content; increment answerSpecVersion or scoreSpecVersion.",
+    "majorContentFix": "Mark requiresReevaluation and define compatibility before using old attempts in current mastery.",
+    "retiredQuestion": "Never delete/reuse ID; keep historical attempts resolvable."
+  },
+  "migrationAndStorage": {
+    "currentStorageSchemaVersion": 1,
+    "migrationRule": "Every schemaVersion change has forward migration and rollback-safe pre-migration backup.",
+    "importValidation": [
+      "schemaVersion present",
+      "required top-level keys present",
+      "attemptId unique",
+      "problemId references valid or retained as historical/retired references",
+      "checksum verified when present",
+      "import cannot overwrite current data before automatic backup"
+    ],
+    "syncRule": "Merge attempts by attemptId; do not add snapshots blindly. Recompute derived SkillState after merge.",
+    "namespaceRule": "production/test/qa separated so QA attempts never contaminate learner history.",
+    "legacyNamespaceMigration": {
+      "from": "rikkyoMathMvp:<namespace>:v1",
+      "to": "rikkyoMathMvp:<namespace>:v2",
+      "rule": "Loader must check the legacy key when the v2 key is absent, migrate forward, and preserve the old key until migration validation succeeds."
+    }
+  },
+  "mvpScope": {
+    "deterministicAnswerKindsRequired": [
+      "integer",
+      "numeric",
+      "rational",
+      "expression",
+      "factorized_expression",
+      "equation",
+      "solution_set",
+      "multi_response",
+      "probability",
+      "angle",
+      "interval",
+      "ratio",
+      "coordinate",
+      "coordinate_set",
+      "pi_expression",
+      "radical_expression",
+      "parameter_value",
+      "ratio_value"
+    ],
+    "aiScoringRequired": false,
+    "deferred": [
+      "PROOF/EXPLANATION AI grading",
+      "GRAPH/CONSTRUCTION automated grading",
+      "cloud multi-device sync implementation",
+      "official-score partial-credit logic until official rules are available"
+    ],
+    "mustSupport": [
+      "Learning Mode",
+      "Diagnostic Mode",
+      "Exam Mode",
+      "Today",
+      "Review",
+      "Progress",
+      "Export/Import",
+      "Resume",
+      "mobile math input"
+    ],
+    "answerAuthority": "internal_verified; official answer key not available"
+  },
+  "schemaAdapters": {
+    "analysisRecordV2ToRuntime": {
+      "Asset": {
+        "id": "assetId",
+        "assetType": "type",
+        "description": "alt",
+        "verificationStatus": "source verification metadata",
+        "note": "Question/group back-references are normalized into questionId/groupId or junction records during ingestion."
+      },
+      "SharedContext": {
+        "id": "sharedContextId"
+      },
+      "Question": {
+        "answerSpec.type": "AnswerSpec.type",
+        "answerSpecVersion": "AnswerSpec.answerSpecVersion",
+        "note": "Embedded analysis answerSpec is split into versioned runtime AnswerSpec during ingestion."
+      }
+    }
+  },
+  "changeLog": [
+    {
+      "version": "1.1",
+      "changes": [
+        "Renamed AnswerSpec.kind to AnswerSpec.type to match normalized v2.0 records.",
+        "Added parameter_value and ratio_value answer types used by the 212-question corpus.",
+        "Added analysis-record-to-runtime schema adapter notes.",
+        "Added explicit legacy localStorage key migration rule required by MVP QA."
+      ]
+    },
+    {
+      "version": "1.2",
+      "changes": [
+        "Recorded that no official answer key exists; removed it as a future release blocker.",
+        "Defined internal answer authority as independent solution + source comparison + automated QA + two consecutive CLEAN reviews.",
+        "Changed FY26A Q5(3) handling from waiting for an official answer to persistent REVIEW_REQUIRED unless a project convention is explicitly adopted.",
+        "Added explicit answerAuthority field to Question runtime schema."
+      ]
+    }
+  ]
+}

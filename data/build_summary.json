@@ -1,0 +1,46 @@
+{
+  "questionCount": 212,
+  "examCount": 6,
+  "renderedSourcePages": 31,
+  "difficulty": {
+    "A": 113,
+    "B": 85,
+    "C": 14
+  },
+  "primarySkill": {
+    "CALCULATION": 32,
+    "ALGEBRA": 45,
+    "EQUATION": 28,
+    "PLANE_GEOMETRY": 16,
+    "FUNCTION": 25,
+    "PROBABILITY": 6,
+    "NUMBER_THEORY": 5,
+    "CIRCLE": 9,
+    "SIMILARITY": 15,
+    "SOLID_GEOMETRY": 21,
+    "WORD_PROBLEM": 1,
+    "MEASUREMENT": 5,
+    "DATA": 2,
+    "STATISTICS": 2
+  },
+  "withDetailedTextPrompt": 26,
+  "withSourcePageImage": 212,
+  "practiceBankCount": 411,
+  "totalProblemIds": 623,
+  "officialAnswerKeyStatus": "not_available",
+  "practiceBankByLevel": {
+    "L1": 100,
+    "L2": 168,
+    "TRANSFER": 77,
+    "RETENTION": 66
+  },
+  "fullyAuthoredStepExplanations": 212,
+  "newExplanationBatch": "FY26-MATH-B:25",
+  "remainingPastExamScaffoldQuestions": 0,
+  "allPastExamQuestionsDetailed": true,
+  "releaseCandidate": "v1.0-rc2",
+  "pastExamDetailedExplanations": "212/212",
+  "practiceBank": "411/411",
+  "officialAnswersAvailable": false,
+  "answerAuthorityModel": "source PDF + independent solution + mathematical recheck"
+}

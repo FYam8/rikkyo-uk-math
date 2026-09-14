@@ -1,0 +1,57 @@
+{
+  "artifact": "rikkyo_math_explanations_FY24B_v1_0",
+  "createdAt": "2026-09-14T11:57:27.614252+00:00",
+  "scope": {
+    "examId": "R24-MATH-B",
+    "questionCount": 39,
+    "sourceDocument": "立教_FY24_数学B_問題.pdf",
+    "sourcePdfPages": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "officialAnswersAvailable": false,
+  "authorityModel": "source PDF + independent mathematical solution + regression tests",
+  "correctionsDuringQA": [
+    "Updated the stale Practice Bank math QA script so it validates the full 411-question bank instead of the original 60-question v0.1 bank. This was a QA-harness correction, not a learner-facing math-content change."
+  ],
+  "review1": {
+    "perspective": "full_static_math_and_application_regression",
+    "result": "CLEAN",
+    "checks": [
+      "FY24B explanation integrity 39/39",
+      "623/623 canonical-answer scoring regression",
+      "Storage/Migration/Import regression",
+      "411-question Practice Bank math verification",
+      "FY24B independent mathematical recheck",
+      "Bank mastery/Today routing smoke",
+      "Chromium in-memory browser smoke"
+    ]
+  },
+  "review2": {
+    "perspective": "source_link_payload_math_browser_http_delivery",
+    "result": "CLEAN",
+    "checks": [
+      "FY24B 39/39 explanation/source-page links",
+      "FY24A+FY24B authored-source-grounded explanation payload = 78 questions",
+      "623-answer scoring regression",
+      "FY24B independent math recheck",
+      "Chromium browser smoke",
+      "HTTP delivery of index.html and questions.json"
+    ]
+  },
+  "twoConsecutiveCleanAchieved": true,
+  "explanationProgress": {
+    "fullyDetailedIncludingExistingFY25AFront26": 104,
+    "pastExamQuestionCount": 212,
+    "remainingScaffold": 108,
+    "authoredSourceGroundedBatches": {
+      "FY24A": 39,
+      "FY24B": 39
+    }
+  },
+  "nextBatch": "R25-MATH-A remaining 19 questions"
+}

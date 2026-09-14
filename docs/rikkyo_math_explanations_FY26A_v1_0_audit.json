@@ -1,0 +1,57 @@
+{
+  "artifact": "rikkyo_math_explanations_FY26A_v1_0",
+  "createdAt": "2026-09-14T16:08:31.438157+00:00",
+  "scope": {
+    "examId": "R26-MATH-A",
+    "questionCount": 25,
+    "sourceDocument": "立教_FY26_数学A_問題.pdf",
+    "sourcePdfPages": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "officialAnswersAvailable": false,
+  "authorityModel": "source PDF + independent mathematical solution + regression tests",
+  "correctionsDuringQA": [
+    "Two SymPy regression assertions were changed from structural expression equality to algebraic simplification equality. These were QA-harness robustness fixes only; no learner-facing mathematical content changed."
+  ],
+  "review1": {
+    "perspective": "static_math_content_and_full_application_regression",
+    "result": "CLEAN",
+    "checks": [
+      "FY26A explanation integrity 25/25",
+      "FY26A independent mathematical recheck",
+      "623/623 canonical-answer scoring regression",
+      "411-question Practice Bank mathematical verification",
+      "Storage/Migration/Import regression",
+      "Bank mastery/Today smoke",
+      "Chromium in-memory browser smoke"
+    ]
+  },
+  "review2": {
+    "perspective": "source_links_browser_and_http_delivery",
+    "result": "CLEAN",
+    "checks": [
+      "FY26A 25/25 source-page-linked explanations",
+      "FY26A independent math recheck",
+      "623 canonical-answer regression",
+      "Chromium browser smoke",
+      "HTTP delivery of index.html, questions.json, and practice_bank.json"
+    ]
+  },
+  "twoConsecutiveCleanAchieved": true,
+  "knownAmbiguity": {
+    "questionId": "R26-MATH-A-Q5-3",
+    "status": "PRESERVED",
+    "note": "D=C (d=2) formally satisfies equal-area condition unless distinctness is intended. The nontrivial intended answer candidate remains D=(-1,-1), and the app keeps REVIEW_REQUIRED behavior."
+  },
+  "explanationProgress": {
+    "fullyDetailed": 187,
+    "pastExamQuestionCount": 212,
+    "remainingScaffold": 25
+  },
+  "nextBatch": "R26-MATH-B 25 questions"
+}

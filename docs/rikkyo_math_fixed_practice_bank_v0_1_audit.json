@@ -1,0 +1,129 @@
+{
+  "artifact": "rikkyo_math_fixed_practice_bank_v0_1",
+  "counts": {
+    "total": 60,
+    "L2": 40,
+    "TRANSFER": 10,
+    "RETENTION": 10,
+    "families": 10
+  },
+  "answerAuthority": "independent mathematical solution + separate SymPy/formula verification + deterministic scorer canonical-answer test",
+  "officialAnswerKeyStatus": "not_available",
+  "independentMathVerification": "PASS 60/60",
+  "transferAudit": [
+    {
+      "problemId": "PB-CALCULATION_FLUENCY-TRANSFER-01",
+      "familyId": "CALCULATION_FLUENCY",
+      "fingerprint": "CALC-RADICAL-QUOTIENT-MIX",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Radical quotient/sum transfer; no copied exam section or diagram.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-ALGEBRA_MANIPULATION-TRANSFER-01",
+      "familyId": "ALGEBRA_MANIPULATION",
+      "fingerprint": "ALG-CANCELLATION-STRUCTURE",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Expansion cancellation identity; independent surface from past-exam factoring/expansion items.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-EQUATION_SOLVING-TRANSFER-01",
+      "familyId": "EQUATION_SOLVING",
+      "fingerprint": "EQ-WORD-RECTANGLE-CONSTRAINT",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Rectangle-area word equation with an explicit domain condition; not derived from a holdout prompt.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-FUNCTION_CORE_AND_TRANSFER-TRANSFER-01",
+      "familyId": "FUNCTION_CORE_AND_TRANSFER",
+      "fingerprint": "FUNC-PARABOLA-HORIZONTAL-CHORD",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Horizontal line–parabola chord distance; unlike FY26 coordinate-area/parallel-form sections.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-PLANE_GEOMETRY-TRANSFER-01",
+      "familyId": "PLANE_GEOMETRY",
+      "fingerprint": "GEO-ISOSCELES-ALTITUDE-BISECTOR",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Isosceles-altitude angle relation; independent of known midpoint/trisection near-duplicate family.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-CIRCLE-TRANSFER-01",
+      "familyId": "CIRCLE",
+      "fingerprint": "CIRCLE-CHORD-CENTER-DISTANCE",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Center-to-chord distance via perpendicular bisector; different from FY26 arc/inscribed-angle slot.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-SIMILARITY_AND_RATIO-TRANSFER-01",
+      "familyId": "SIMILARITY_AND_RATIO",
+      "fingerprint": "SIM-RECTANGLE-PERIMETER-AREA",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Similar rectangles using perimeter-to-area scaling; no exam diagram copy.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-SOLID_GEOMETRY-TRANSFER-01",
+      "familyId": "SOLID_GEOMETRY",
+      "fingerprint": "SOLID-TRIANGULAR-PRISM-VOLUME",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Triangular-prism volume; deliberately avoids FY26 rectangular-prism diagonal and tetrahedron structures.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-MEASUREMENT-TRANSFER-01",
+      "familyId": "MEASUREMENT",
+      "fingerprint": "MEASURE-RECTANGLE-SEMICIRCLE-COMPOSITE",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Rectangle plus external semicircle; only skill-level overlap with composite-measurement items, no diagram/numeric copy.",
+      "cleanTransferEligibleByDesign": true
+    },
+    {
+      "problemId": "PB-PROBABILITY_NUMBER_DATA-TRANSFER-01",
+      "familyId": "PROBABILITY_NUMBER_DATA",
+      "fingerprint": "PROB-COMBINATION-SAME-COLOR",
+      "exactFingerprintCollisionWithPastExam": false,
+      "nearDuplicateOf": [],
+      "manualLeakageAssessment": "LOW",
+      "rationale": "Without-replacement colored-ball combination; avoids the repeated two-dice structures.",
+      "cleanTransferEligibleByDesign": true
+    }
+  ],
+  "checks": {
+    "uniqueIds": true,
+    "sixItemsPerFamily": true,
+    "fourL2OneTransferOneRetentionPerFamily": true,
+    "noExactTransferFingerprintCollisionWithPast": true,
+    "noDeclaredNearDuplicateTransfer": true,
+    "allTransferManualRiskLow": true
+  },
+  "limitations": [
+    "This is the first mastery-enabling tranche (60 items), not the full target bank volume from Learning Design Freeze.",
+    "Geometry items are currently text-complete rather than diagram-heavy; later expansion should add diagram variants and additional structural fingerprints.",
+    "Retention has one dedicated item per family in this tranche; later bank expansion should add multiple delayed variants."
+  ],
+  "result": "CLEAN"
+}

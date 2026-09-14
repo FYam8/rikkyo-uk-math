@@ -1,0 +1,57 @@
+{
+  "artifact": "rikkyo_math_full_v0_4",
+  "createdAt": "2026-09-14T11:17:23.835096+00:00",
+  "reviewPolicy": "After the last product correction, require two consecutive reviews with no corrections.",
+  "lastProductCorrection": "Mobile/QA harness CSS loading + Level2/Transfer/Retention Bank integration completed before Review 1.",
+  "review1": {
+    "perspective": "static_content_scoring_storage_and_math_bank",
+    "result": "CLEAN",
+    "checks": [
+      "JS syntax passed for app.js, scoring.js, storage.js.",
+      "Content validation: 212 past-exam questions + 60 fixed-bank questions, unique IDs and required fields.",
+      "Deterministic scorer canonical-answer tests passed for all 272 problem IDs plus wrong-answer and form controls.",
+      "Storage/migration/import/dedupe tests passed.",
+      "Independent mathematical verification passed for all 60 fixed-bank items using separate SymPy/formula checks.",
+      "Formal data-model v1.2 audit CLEAN; official answer key recorded as not available."
+    ]
+  },
+  "review2": {
+    "perspective": "functional_browser_mastery_transfer_security_and_http_smoke",
+    "result": "CLEAN",
+    "checks": [
+      "Chromium in-memory UI smoke passed: Home, Diagnostic secrecy, Practice retry, ambiguity handling, Exam secrecy.",
+      "Dedicated Transfer Bank is clean only while unseen; exposure invalidates clean-transfer eligibility.",
+      "Bank mastery path passed: accuracy + one clean transfer + one retention can reach mastered.",
+      "Today weak-skill routing selects unseen Level 2 Bank items.",
+      "Dedicated retention candidate selection passed.",
+      "Imported/user-derived strings are escaped in Progress; XSS smoke passed.",
+      "390px mobile overflow smoke passed with actual stylesheet loaded.",
+      "HTTP static serving verified for index, 212-question JSON, 60-bank JSON, and source-page image asset."
+    ]
+  },
+  "twoConsecutiveCleanAchieved": true,
+  "counts": {
+    "pastExamQuestions": 212,
+    "fixedPracticeBank": 60,
+    "totalProblemIds": 272,
+    "L2": 40,
+    "cleanTransfer": 10,
+    "retention": 10,
+    "practiceFamilies": 10
+  },
+  "answerAuthority": {
+    "officialAnswerKeyStatus": "not_available",
+    "internalAuthority": "source comparison + independent solution + separate math verification + automated scoring tests + two consecutive CLEAN reviews",
+    "officialPointAllocation": "unknown",
+    "ambiguityPolicy": "R26-MATH-A-Q5-3 remains REVIEW_REQUIRED and excluded from forced correctness/mastery."
+  },
+  "bankStatus": "mastery-enabling tranche v0.1, not the final target bank volume",
+  "knownRemainingWork": [
+    "Expand fixed/generator Bank toward Learning Design Freeze target volume, especially diagram variants and multiple retention variants.",
+    "Replace explanation scaffolds with complete hand-authored explanations for the remaining 186 past-exam questions.",
+    "Final 272-problem regression after explanation/asset expansion.",
+    "Cloud sync / IndexedDB if required later.",
+    "Official points only if an authoritative point source exists; do not fabricate them."
+  ],
+  "finalStatus": "CLEAN_FOR_NEXT_DEVELOPMENT_GATE"
+}

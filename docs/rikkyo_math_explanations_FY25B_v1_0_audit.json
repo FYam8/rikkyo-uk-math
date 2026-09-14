@@ -1,0 +1,54 @@
+{
+  "artifact": "rikkyo_math_explanations_FY25B_v1_0",
+  "createdAt": "2026-09-14T14:37:40.971696+00:00",
+  "scope": {
+    "examId": "R25-MATH-B",
+    "questionCount": 39,
+    "sourceDocument": "立教_FY25_数学B_問題.pdf",
+    "sourcePdfPages": [
+      3,
+      4,
+      5,
+      6,
+      7
+    ]
+  },
+  "officialAnswersAvailable": false,
+  "authorityModel": "source PDF + independent mathematical solution + regression tests",
+  "correctionsDuringQA": [
+    "Updated a stale FY25A regression assertion for the circle-angle derivation: the previous test formula did not reflect the authored 53° derivation.",
+    "Changed a second FY25A symbolic regression assertion from structural SymPy equality to algebraic simplification equality. This was a QA-harness robustness fix, not a learner-facing math change."
+  ],
+  "review1": {
+    "perspective": "static_math_content_and_application_regression",
+    "result": "CLEAN",
+    "checks": [
+      "FY25B explanation integrity 39/39",
+      "FY25B independent mathematical recheck",
+      "623/623 canonical-answer scoring regression",
+      "411-question Practice Bank mathematical verification",
+      "Storage/Migration/Import regression",
+      "Bank mastery/Today smoke",
+      "Chromium in-memory browser smoke"
+    ]
+  },
+  "review2": {
+    "perspective": "source_links_browser_and_http_delivery",
+    "result": "CLEAN",
+    "checks": [
+      "FY25B 39/39 explanation/source-page links",
+      "Global detailed-explanation count >=162",
+      "623 canonical-answer scoring regression",
+      "FY25B independent math recheck",
+      "Chromium browser smoke",
+      "HTTP delivery of index.html, 212-question JSON, and 411-bank JSON"
+    ]
+  },
+  "twoConsecutiveCleanAchieved": true,
+  "explanationProgress": {
+    "fullyDetailed": 162,
+    "pastExamQuestionCount": 212,
+    "remainingScaffold": 50
+  },
+  "nextBatch": "R26-MATH-A 25 questions"
+}
