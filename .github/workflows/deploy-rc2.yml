@@ -1,0 +1,115 @@
+name: Deploy RC2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - rikkyo_math_full_v1_0_rc2.zip
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require RC2 ZIP
+        run: |
+          test -f rikkyo_math_full_v1_0_rc2.zip || { echo 'RC2 ZIP not present; nothing to do.'; exit 0; }
+
+      - name: Verify RC2 ZIP SHA-256
+        run: |
+          echo '05772e4ed42391032be2002fd1c8675faea4f212c944c78e638b47f2d3a23a3f  rikkyo_math_full_v1_0_rc2.zip' | sha256sum -c -
+
+      - name: Expand RC2
+        run: |
+          rm -rf site
+          mkdir site
+          unzip -q rikkyo_math_full_v1_0_rc2.zip -d site
+          test -f site/index.html
+          test -f site/release_manifest.json
+          test -f site/data/questions.json
+          test -f site/data/practice_bank.json
+
+      - name: Verify release manifest
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib, sys
+          root = pathlib.Path('site')
+          manifest = json.loads((root/'release_manifest.json').read_text())
+          assert manifest['release'] == 'v1.0-rc2'
+          assert manifest['pastExamQuestions'] == 212
+          assert manifest['fullyAuthoredPastExamExplanations'] == 212
+          assert manifest['practiceBankQuestions'] == 411
+          assert manifest['totalProblemIds'] == 623
+          errors=[]
+          for rel, expected in manifest['fileChecksums'].items():
+              p=root/rel
+              if not p.is_file():
+                  errors.append(f'missing: {rel}')
+                  continue
+              got=hashlib.sha256(p.read_bytes()).hexdigest()
+              if got != expected:
+                  errors.append(f'hash mismatch: {rel}')
+          if errors:
+              print('\n'.join(errors))
+              sys.exit(1)
+          print(f"manifest verified: {len(manifest['fileChecksums'])} files")
+          PY
+
+      - name: Run RC2 tests
+        run: |
+          cd site
+          node --check app.js
+          node --check scoring.js
+          node --check storage.js
+          node tests/content.test.js
+          node tests/scoring_all.test.js
+          node tests/storage.test.js
+          node tests/release_invariants.test.js
+          python tests/bank_math_verify.py
+          python tests/fy24a_math_verify.py
+          python tests/fy24b_math_verify.py
+          python tests/fy25a_full_math_verify.py
+          python tests/fy25b_math_verify.py
+          python tests/fy26a_math_verify.py
+          python tests/fy26b_math_verify.py
+
+      - name: Replace repository contents with exact RC2
+        run: |
+          find . -mindepth 1 -maxdepth 1 ! -name .git ! -name site -exec rm -rf {} +
+          cp -a site/. .
+          rm -rf site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Deploy exact RC2 source' || true
+          git push origin HEAD:main
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
