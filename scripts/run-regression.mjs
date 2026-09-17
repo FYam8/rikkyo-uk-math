@@ -16,6 +16,7 @@ const commands = [
   ['node', ['tests/holdout_isolation.test.js']],
   ['node', ['tests/reinforcement_mapping.test.js']],
   ['node', ['tests/shared_today_planner.test.js']],
+  ['node', ['tests/shared_engine_ownership.test.js']],
   ['node', ['tests/release_invariants.test.js']],
   ['node', ['tests/all_explanations.test.js']],
   ['python', ['tests/bank_math_verify.py']],
