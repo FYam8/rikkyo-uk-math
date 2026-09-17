@@ -3,6 +3,7 @@ const PROFILE=window.RIKKYO_MATH_PROFILE;
 let QUESTIONS=[], BANK=[], ALL_ITEMS=[], EXAMS=[], REGISTRY={},CANONICAL_CONTENT=null;
 let activeTimer=null,activeTimerCommit=null,activeTimerUi=null;
 let currentView="home";
+let answerDockOpen=window.innerWidth>700;
 
 function h(s){return String(s??"").replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]));}
 function stopTimer(){if(activeTimerUi){clearInterval(activeTimerUi);activeTimerUi=null;}if(!activeTimer)return 0;const ms=activeTimer.stop();if(activeTimerCommit)try{activeTimerCommit(ms);}catch(e){}activeTimer=null;activeTimerCommit=null;return ms;}
@@ -249,6 +250,37 @@ function bindMathKeypad(){
 }
 function answerDisplay(q){return q.answerCandidate??q.answerSpec?.expected??"—";}
 
+function answerProvided(answer){
+  return !!answer&&Object.values(answer).some(value=>String(value??"").trim()!=="");
+}
+function sessionAnsweredCount(session){
+  return session.problemIds.filter(id=>answerProvided(session.answers?.[id])).length;
+}
+function saveCurrentSessionAnswer(session){
+  const q=qById(session.problemIds[session.index]);
+  if(q&&document.querySelector("[data-slot]"))session.answers[problemIdOf(q)]=readAnswer(q);
+}
+function sessionJump(sid,index){
+  const session=AppStorage.session(sid);if(!session)return;
+  saveCurrentSessionAnswer(session);session.index=Math.max(0,Math.min(session.problemIds.length-1,index));
+  AppStorage.setSession(sid,session);window.scrollTo({top:0,behavior:"smooth"});
+  session.mode==="diagnostic"?renderDiagnostic():renderExamSession(sid);
+}
+function sessionNavigator(session,sid){
+  const questions=session.problemIds.map((id,index)=>({q:qById(id),index})).filter(item=>item.q);
+  const majors=[...new Set(questions.map(item=>item.q.majorQuestion))];
+  const active=questions.find(item=>item.index===session.index),activeMajor=active?.q.majorQuestion;
+  const majorTabs=majors.map(major=>{const items=questions.filter(item=>item.q.majorQuestion===major),done=items.filter(item=>answerProvided(session.answers?.[problemIdOf(item.q)])).length;return `<button class="${major===activeMajor?"active":""}" onclick="sessionJump('${sid}',${items[0].index})">大問${h(major)}<small>${done}/${items.length}</small></button>`;}).join("");
+  const questionTabs=questions.filter(item=>item.q.majorQuestion===activeMajor).map(item=>`<button class="${item.index===session.index?"active":""} ${answerProvided(session.answers?.[problemIdOf(item.q)])?"answered":""}" onclick="sessionJump('${sid}',${item.index})">${h(item.q.label)}</button>`).join("");
+  return `<div class="major-tabs" aria-label="大問選択">${majorTabs}</div><div class="question-tabs" aria-label="小問選択">${questionTabs}</div>`;
+}
+function toggleAnswerDock(){
+  answerDockOpen=!answerDockOpen;const dock=document.querySelector(".answer-dock");if(!dock)return;
+  dock.classList.toggle("open",answerDockOpen);dock.classList.toggle("closed",!answerDockOpen);
+  const toggle=dock.querySelector(".answer-dock-toggle"),state=dock.querySelector(".answer-dock-state");
+  if(toggle)toggle.setAttribute("aria-expanded",String(answerDockOpen));if(state)state.textContent=answerDockOpen?"閉じる":"開く";
+}
+
 function explanationHtml(q){
   if(Array.isArray(q.explanationSteps)&&q.explanationSteps.length){
     const kp=q.explanationKeyPoint?`<div class="notice"><strong>ポイント</strong><br>${h(q.explanationKeyPoint)}</div>`:"";
@@ -392,24 +424,25 @@ function renderDiagnostic(){
   }
   if(s.status==="finished")return renderSessionResult(s);
   const q=qById(s.problemIds[s.index]);AppStorage.setExposure(q.id,"seen");
-  const pct=Math.round(s.index/s.problemIds.length*100);
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">CORE DIAGNOSTIC</span><h1>現在地を確認</h1><p class="muted">解説や技能ラベルを見ずに解き、弱点補強の出発点を作ります。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div><section class="card practice-card">
-    <div class="question-progress"><strong>FY25 数学A</strong><span>${s.index+1} / ${s.problemIds.length}</span></div>
-    ${s.cleanEligible?"":'<div class="warn">この試験には既見問題があります。結果は再受験スコアでありClean Diagnosticではありません。</div>'}
-    <div class="progressbar"><div style="width:${pct}%"></div></div>
-    <p class="small muted">${h(q.label)}</p>
-    ${sourceBlock(q,true)}
-    ${qInput(q,s.answers[q.id]||{})}
-    ${mathKeypad()}
-    <div class="actions"><button class="secondary" ${s.index===0?"disabled":""} onclick="sessionMove('${SID}',-1)">前へ</button><button onclick="sessionMove('${SID}',1)">${s.index===s.problemIds.length-1?"終了して採点":"次へ"}</button></div>
-    <p class="small muted">診断中は難度・技能・正誤・解説を表示しません。</p>
-  </section>`;
+  const pct=Math.round((s.index+1)/s.problemIds.length*100),entered=sessionAnsweredCount(s);
+  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">STEP 過去問を解く</span><h1>FY25 数学A｜Core Diagnostic</h1></div><div><b>入力 ${entered}/${s.problemIds.length}</b><button class="text-button" onclick="render('library')">演習一覧</button></div></div>
+    ${sessionNavigator(s,SID)}
+    <div class="exam-workspace ${answerDockOpen?"answer-open":""}">
+      <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">PROBLEM · EXAM MODE</span><h2>大問${h(q.majorQuestion)} ${h(q.label)}</h2></div><b>${s.index+1}/${s.problemIds.length}</b></div>
+        ${s.cleanEligible?"":'<div class="warn">この試験には既見問題があります。結果は再受験の記録です。</div>'}
+        <div class="progressbar"><div style="width:${pct}%"></div></div>${sourceBlock(q,true)}
+      </section>
+      <aside class="answer-dock card ${answerDockOpen?"open":"closed"}"><button class="answer-dock-toggle" onclick="toggleAnswerDock()" aria-expanded="${answerDockOpen}">解答欄 ${answerProvided(s.answers[q.id])?"1/1":"0/1"}<span class="answer-dock-state">${answerDockOpen?"閉じる":"開く"}</span></button><div class="answer-dock-body">
+        <p class="dock-note">診断中は難度・技能・Hint・正答・解説を表示しません。入力は自動保存されます。</p><div class="dock-scroll"><div class="dock-question"><div class="dock-qhead"><b>${h(q.label)}</b><span>答えを入力</span></div>${qInput(q,s.answers[q.id]||{})}</div></div>
+        <div class="dock-keypad">${mathKeypad()}</div><div class="major-nav"><button class="secondary" ${s.index===0?"disabled":""} onclick="sessionMove('${SID}',-1)">← 前の小問</button><button onclick="sessionMove('${SID}',1)">${s.index===s.problemIds.length-1?"解答を終了して自動採点":"次の小問 →"}</button></div>
+      </div></aside>
+    </div>`;
   bindDraftSaver(q,ans=>{const cur=AppStorage.session(SID);if(cur){cur.answers[q.id]=ans;AppStorage.setSession(SID,cur);}});
   bindMathKeypad();
 }
 function sessionMove(sid,dir){
   const s=AppStorage.session(sid);if(!s)return;
-  const q=qById(s.problemIds[s.index]);s.answers[q.id]=readAnswer(q);
+  saveCurrentSessionAnswer(s);
   if(dir<0){s.index=Math.max(0,s.index-1);AppStorage.setSession(sid,s);return s.mode==="diagnostic"?renderDiagnostic():renderExamSession(sid);}
   if(s.index<s.problemIds.length-1){s.index++;AppStorage.setSession(sid,s);return s.mode==="diagnostic"?renderDiagnostic():renderExamSession(sid);}
   finishClosedSession(sid);
@@ -540,13 +573,16 @@ function openPractice(id,mode="learning",reviewItemId=""){
 function renderPracticeQuestion(q,s){
   AppStorage.setExposure(q.id,"seen");
   const flow=s.flow,flowIndex=flow?.index||0;
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">${flow?"PAST PAPER REINFORCEMENT":"GUIDED PRACTICE"}</span><h1>${flow?h(reinforcementStageLabel(s)):"問題を解く"}</h1>${flow?`<p class="muted">過去問の誤答から、元問題→L1/L2類題→Clean Transferの順で進みます。</p>`:""}</div><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div>${flow?`<section class="card reinforcement-progress"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${reinforcementStageLabel(s).includes("元問題")?"current":flowIndex>0?"done":""}"><b>2</b><span>元問題を直す</span></div><div class="${["l1","l2"].includes(flow.stageByProblemId[s.problemId])?"current":flow.stageByProblemId[s.problemId]==="transfer"?"done":""}"><b>3</b><span>L1/L2類題</span></div><div class="${flow.stageByProblemId[s.problemId]==="transfer"?"current":""}"><b>4</b><span>転移・定着</span></div></div><div class="question-progress"><strong>${h(reinforcementStageLabel(s))}</strong><span>${flowIndex+1} / ${flow.problemIds.length}</span></div><div class="progressbar"><div style="width:${Math.round(flowIndex/flow.problemIds.length*100)}%"></div></div></section>`:""}<section class="card practice-card">
-    <div class="meta-row"><span class="badge">${h(s.mode)}</span><span class="badge ${q.difficulty.toLowerCase()}">${q.difficulty}</span><span class="badge">${h(q.primarySkillLabel)}</span><span class="badge">${h(targetFor(q))}</span></div>
-    <div class="question-title">${q.sourceType==="FIXED_PRACTICE"?h((q.practiceLevel||"")+" / "+(q.familyId||q.primarySkill)):h(q.examId+" "+q.label)}</div>
-    ${sourceBlock(q,true)}${qInput(q,s.answerDraft||{})}${mathKeypad()}
-    <div id="feedback"></div>
-    <div class="actions"><button id="submitPractice">採点</button><button class="secondary" id="hint1Btn">H1 着眼点</button><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断</button></div>
-  </section>`;
+  const title=q.sourceType==="FIXED_PRACTICE"?h((q.practiceLevel||"")+" / "+(q.familyId||q.primarySkill)):h(q.examId+" "+q.label);
+  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">${flow?"PAST PAPER → FIXED PRACTICE":"GUIDED PRACTICE"}</span><h1>${flow?h(reinforcementStageLabel(s)):"問題を解く"}</h1></div><div>${flow?`<b>${flowIndex+1}/${flow.problemIds.length}</b>`:""}<button class="text-button" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div></div>
+    ${flow?`<section class="card reinforcement-progress"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${reinforcementStageLabel(s).includes("元問題")?"current":flowIndex>0?"done":""}"><b>2</b><span>元問題を直す</span></div><div class="${["l1","l2"].includes(flow.stageByProblemId[s.problemId])?"current":flow.stageByProblemId[s.problemId]==="transfer"?"done":""}"><b>3</b><span>L1/L2類題</span></div><div class="${flow.stageByProblemId[s.problemId]==="transfer"?"current":""}"><b>4</b><span>転移・定着</span></div></div><div class="question-progress"><strong>${h(reinforcementStageLabel(s))}</strong><span>${flowIndex+1} / ${flow.problemIds.length}</span></div><div class="progressbar"><div style="width:${Math.round((flowIndex+1)/flow.problemIds.length*100)}%"></div></div></section>`:""}
+    <div class="exam-workspace study-workspace ${answerDockOpen?"answer-open":""}">
+      <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">PROBLEM</span><h2>${title}</h2></div>${flow?`<b>${h(reinforcementStageLabel(s))}</b>`:""}</div><div class="meta-row"><span class="badge">${h(s.mode)}</span><span class="badge ${q.difficulty.toLowerCase()}">${q.difficulty}</span><span class="badge">${h(q.primarySkillLabel)}</span><span class="badge">${h(targetFor(q))}</span></div>${sourceBlock(q,true)}</section>
+      <aside class="answer-dock card ${answerDockOpen?"open":"closed"}"><button class="answer-dock-toggle" onclick="toggleAnswerDock()" aria-expanded="${answerDockOpen}">解答欄 ${answerProvided(s.answerDraft)?"1/1":"0/1"}<span class="answer-dock-state">${answerDockOpen?"閉じる":"開く"}</span></button><div class="answer-dock-body">
+        <p class="dock-note">まず自力で解答。必要なときだけH1→H2→完全解説の順で開きます。</p><div class="dock-scroll"><div class="dock-question"><div class="dock-qhead"><b>解答</b><span>${title}</span></div>${qInput(q,s.answerDraft||{})}<div id="feedback"></div></div></div>
+        <div class="dock-keypad">${mathKeypad()}</div><div class="major-nav"><button id="submitPractice">採点する</button><button class="secondary" id="hint1Btn">H1 着眼点</button><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断</button></div>
+      </div></aside>
+    </div>`;
   activeTimer=createActiveTimer(s.activeMs||0);activeTimerCommit=ms=>{const c=AppStorage.session(s.sessionId);if(c){c.activeMs=ms;AppStorage.setSession(s.sessionId,c);}};
   mountFloatingTimer();
   bindDraftSaver(q,ans=>{const c=AppStorage.session(s.sessionId);if(c){c.answerDraft=ans;c.activeMs=activeTimer?activeTimer.ms():c.activeMs;AppStorage.setSession(s.sessionId,c);}});
@@ -620,13 +656,18 @@ function startExam(examId){
 function renderExamSession(sid){
   const s=AppStorage.session(sid);if(!s)return render("exams");if(s.status==="finished")return renderSessionResult(s);
   const q=qById(s.problemIds[s.index]);AppStorage.setExposure(q.id,"seen");
-  const pct=Math.round(s.index/s.problemIds.length*100);
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">EXAM MODE</span><h1>${h(examById(s.examId).label)}</h1><p class="muted">提出まではHint・正答・解説を表示しません。</p></div></div><section class="card practice-card">
-    ${s.cleanEligible?"":'<div class="warn">この実施はlearner-unseenのClean評価ではありません。</div>'}
-    <div class="progressbar"><div style="width:${pct}%"></div></div><p class="small muted">${s.index+1}/${s.problemIds.length} — ${h(q.label)}</p>
-    ${sourceBlock(q,true)}${qInput(q,s.answers[q.id]||{})}${mathKeypad()}
-    <div class="actions"><button class="secondary" ${s.index===0?"disabled":""} onclick="sessionMove('${sid}',-1)">前へ</button><button onclick="sessionMove('${sid}',1)">${s.index===s.problemIds.length-1?"終了して採点":"次へ"}</button></div>
-    <p class="small muted">提出前は難度・技能・Hint・正答・解説を表示しません。</p></section>`;
+  const pct=Math.round((s.index+1)/s.problemIds.length*100),entered=sessionAnsweredCount(s),exam=examById(s.examId);
+  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">STEP 過去問を解く</span><h1>${h(exam.label)}｜${h(exam.roleLabel)}</h1></div><div><b>入力 ${entered}/${s.problemIds.length}</b><button class="text-button" onclick="render('exams')">演習一覧</button></div></div>
+    ${sessionNavigator(s,sid)}
+    <div class="exam-workspace ${answerDockOpen?"answer-open":""}">
+      <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">PROBLEM · EXAM MODE</span><h2>大問${h(q.majorQuestion)} ${h(q.label)}</h2></div><b>${s.index+1}/${s.problemIds.length}</b></div>
+        ${s.cleanEligible?"":'<div class="warn">この実施はlearner-unseenのClean評価ではありません。</div>'}<div class="progressbar"><div style="width:${pct}%"></div></div>${sourceBlock(q,true)}
+      </section>
+      <aside class="answer-dock card ${answerDockOpen?"open":"closed"}"><button class="answer-dock-toggle" onclick="toggleAnswerDock()" aria-expanded="${answerDockOpen}">解答欄 ${answerProvided(s.answers[q.id])?"1/1":"0/1"}<span class="answer-dock-state">${answerDockOpen?"閉じる":"開く"}</span></button><div class="answer-dock-body">
+        <p class="dock-note">提出前は難度・技能・Hint・正答・解説を表示しません。入力は自動保存されます。</p><div class="dock-scroll"><div class="dock-question"><div class="dock-qhead"><b>${h(q.label)}</b><span>答えを入力</span></div>${qInput(q,s.answers[q.id]||{})}</div></div>
+        <div class="dock-keypad">${mathKeypad()}</div><div class="major-nav"><button class="secondary" ${s.index===0?"disabled":""} onclick="sessionMove('${sid}',-1)">← 前の小問</button><button onclick="sessionMove('${sid}',1)">${s.index===s.problemIds.length-1?"解答を終了して自動採点":"次の小問 →"}</button></div>
+      </div></aside>
+    </div>`;
   bindDraftSaver(q,ans=>{const c=AppStorage.session(sid);if(c){c.answers[q.id]=ans;AppStorage.setSession(sid,c);}});
   bindMathKeypad();
 }
