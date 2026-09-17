@@ -133,9 +133,44 @@ with sync_playwright() as p:
     flow_session["status"]="finished"
     page.evaluate("s=>AppStorage.setSession(s.sessionId,s)",flow_session)
 
-    # Practice: wrong answer does not immediately expose final answer.
+    # WaseShibu-style weakness UX: unresolved fields lead to a fixed four-item
+    # set, correct items remain completed, and only unresolved items cycle.
+    page.evaluate("""()=>{const q=qById('R24-MATH-A-Q1-2');AppStorage.addAttempt({attemptId:'weakness-seed',problemId:q.id,contentVersion:1,answerSpecVersion:1,answerSnapshot:{value:'999999'},correct:false,officialScore:null,learningScore:0,startedAt:'2026-09-01T01:00:00.000Z',submittedAt:'2026-09-01T01:01:00.000Z',activeDurationMs:60000,hintEvents:[],retryCount:0,mode:'learning',learnerExposureStatusBeforeAttempt:'seen',transferEligibleAtAttempt:false,errorCauseCandidates:[],deviceId:AppStorage.get().device.deviceId,sessionId:null,environment:'test',skill:q.primarySkill,difficulty:q.difficulty})}""")
     page.evaluate("render('practice')")
     page.wait_for_timeout(100)
+    practice_text=page.locator("#app").inner_text()
+    assert "弱点・固定類題" in practice_text
+    assert "直す順番" in practice_text
+    assert page.locator(".review-order > div").count()==3
+    assert page.locator(".review-topics .card").count()>0
+    page.get_by_role("button",name=re.compile("固定類題セットで克服する|固定類題を続ける")).first.click()
+    assert "開始時に固定した4問" in page.locator("#app").inner_text()
+    assert page.locator(".wase-practice").count()==1
+    assert page.locator(".answer-dock").count()==0
+    weakness_sid=page.evaluate("weaknessFlowSessions('CALCULATION')[0].sessionId")
+    weakness_ids=page.evaluate("sid=>AppStorage.session(sid).flow.problemIds",weakness_sid)
+    assert len(weakness_ids)==4
+    assert len(set(weakness_ids))==4
+    inp=page.locator('[data-slot="value"]').first
+    inp.fill("999999")
+    page.get_by_role("button",name=re.compile("採点")).click()
+    assert "答えはまだ表示しません" in page.locator("#feedback").inner_text()
+    page.get_by_role("button",name="次の問題へ").click()
+    assert page.evaluate("sid=>AppStorage.session(sid).flow.problemIds.length",weakness_sid)==4
+    assert page.evaluate("sid=>AppStorage.session(sid).flow.completedQuestionIds.length",weakness_sid)==0
+    page.get_by_role("button",name="中断").click()
+    assert "固定類題を続ける 0/4" in page.locator("#app").inner_text()
+    page.get_by_role("button",name=re.compile("固定類題を続ける")).first.click()
+    weakness_current=page.evaluate("sid=>AppStorage.session(sid).problemId",weakness_sid)
+    weakness_expected=page.evaluate("id=>String(qById(id).answerCandidate??qById(id).answerSpec.expected)",weakness_current)
+    page.locator('[data-slot="value"]').first.fill(weakness_expected)
+    page.get_by_role("button",name=re.compile("採点")).click()
+    assert page.evaluate("sid=>AppStorage.session(sid).flow.completedQuestionIds.length",weakness_sid)==1
+    page.evaluate("sid=>{const s=AppStorage.session(sid);s.status='finished';AppStorage.setSession(sid,s);render('practice')}",weakness_sid)
+
+    # Optional direct-bank practice remains available behind the secondary
+    # disclosure, and wrong answers still do not reveal the final answer.
+    page.locator(".optional-practice summary").click()
     page.locator("#practiceList button").first.click()
     page.wait_for_timeout(100)
     assert page.locator(".math-keypad").count()==1
