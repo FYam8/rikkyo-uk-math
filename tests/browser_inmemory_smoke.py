@@ -35,24 +35,34 @@ with sync_playwright() as p:
     page.add_script_tag(path=str(root/"app.js"))
     page.wait_for_timeout(300)
 
-    assert "212問＋類題Bank" in page.locator("#app").inner_text()
+    # WaseShibu-parity shell: same five primary destinations and Today-first home.
+    assert page.locator("#nav button").all_inner_texts()==["ホーム","学習する","演習ライブラリ","学習記録","データ管理"]
+    assert "TODAY · ONE CLEAR NEXT STEP" in page.locator("#app").inner_text()
+    assert "今日やること" in page.locator("#app").inner_text()
+    assert "学習履歴を保護中" in page.locator(".local-badge").inner_text()
+    assert page.locator(".target-chip").count()==3
     assert page.evaluate("AppStorage.migrationReport().status")=="migrated"
     assert page.evaluate("AppStorage.get().attempts.length")==1
     assert page.evaluate("localStorage.getItem('rikkyoMathFull:prod:v3')!==null")
     assert "途中から再開" in page.locator("#app").inner_text()
 
     # Diagnostic: no metadata badges before submit.
-    page.get_by_role("button",name="診断").click()
+    page.locator("#nav").get_by_role("button",name="演習ライブラリ").click()
+    page.get_by_role("button",name="診断を開く").click()
     page.wait_for_timeout(100)
-    assert "Core Diagnostic" in page.locator("#app").inner_text()
+    assert "CORE DIAGNOSTIC" in page.locator("#app").inner_text()
     assert page.locator("#app .badge").count()==0
 
     # Practice: wrong answer does not immediately expose final answer.
-    page.get_by_role("button",name="練習").click()
+    page.evaluate("render('practice')")
     page.wait_for_timeout(100)
     page.locator("#practiceList button").first.click()
     page.wait_for_timeout(100)
+    assert page.locator(".math-keypad").count()==1
+    assert page.locator("#floatingTimer").count()==1
     inp=page.locator('[data-slot="value"]').first
+    page.locator('[data-math-key="/"]').click()
+    assert inp.input_value()=="/"
     inp.fill("999999")
     page.get_by_role("button",name="採点").click()
     page.wait_for_timeout(50)
