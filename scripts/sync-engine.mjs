@@ -20,7 +20,9 @@ const paths = [
   'src/engine/localRestoreContract.ts',
   'src/engine/noLossTransport.ts',
   'src/engine/practiceHistoryContract.ts',
-  'src/engine/remediationContract.ts'
+  'src/engine/remediationContract.ts',
+  'src/engine/todayPlanner.ts',
+  'src/engine/todayPlanner.runtime.js'
 ]
 const files = {}
 for (const path of paths) {
