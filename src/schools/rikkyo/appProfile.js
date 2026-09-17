@@ -3,7 +3,7 @@
     id:"rikkyo-uk",schoolLabel:"立教英国学院",
     brand:{title:"立教英国学院 数学",unofficialLabel:"非公式学習版",subtitle:"FY24–FY26 A/B・212問＋固定類題411問",footer:"公式解答・公式小問配点はありません。原本、独立解答、数学的再検算、自動採点回帰と精査をAnswer Authorityとします。"},
     supportedYears:[2024,2025,2026],
-    targets:[{id:"minimum",label:"最低",rank:1},{id:"stable",label:"安定",rank:2},{id:"safe",label:"安全",rank:3}],
+    targets:[{id:"minimum",label:"最低ライン",rank:1},{id:"stable",label:"安定圏",rank:2},{id:"safe",label:"安全圏",rank:3}],
     learningPhases:[
       {step:1,title:"FY25A Core Diagnostic",role:"diagnostic",examIds:["R25-MATH-A"]},
       {step:2,title:"FY24A/B Training",role:"training",examIds:["R24-MATH-A","R24-MATH-B"]},
