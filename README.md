@@ -21,11 +21,14 @@ FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0�
 - テキスト転記prompt: 26問。その他は原本ページ画像を問題文の基準にする。
 
 ## 学習フロー
-- FY25A Core Diagnostic
+- FY25A Core Diagnosticまたは各年度の過去問を解く
+- 採点後、誤答した元問題を1問ずつ解き直す
+- 元問題の明示的な `primarySkill` と一致するL1・L2固定類題へ進む
+- 改善後は同じ技能のlearner-unseenなClean Transferへ進む
+- 正解した固定類題と同じ `familyId` のRetention itemで翌日以降に定着確認
+- 類題Authorityがない元問題は推測で割り当てず、元問題の解き直しのみ行う
+- 補強途中の状態はResume／今日の学習から再開する
 - FY24A/B Training
-- 弱点が深い場合はL1、標準弱点はL2を優先
-- 改善後はClean Transfer
-- Retention専用itemによる遅延確認
 - FY25B Intermediate Transfer
 - FY26B final learner-unseen evaluation
 - FY26A parallel-form confirmation

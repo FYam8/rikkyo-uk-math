@@ -53,6 +53,44 @@ with sync_playwright() as p:
     assert "CORE DIAGNOSTIC" in page.locator("#app").inner_text()
     assert page.locator("#app .badge").count()==0
 
+    # WaseShibu-style route: a wrong past-paper item must lead to source review,
+    # explicit-primarySkill L1/L2 practice, and clean transfer in one resumable flow.
+    page.evaluate("""()=>AppStorage.setSession('flow-source',{sessionId:'flow-source',mode:'exam',examId:'R24-MATH-A',problemIds:['R24-MATH-A-Q1-1'],answers:{},results:[{problemId:'R24-MATH-A-Q1-1',correct:false,reviewRequired:false}],startedAt:'2026-09-01T00:00:00.000Z',finishedAt:'2026-09-01T00:10:00.000Z',status:'finished'})""")
+    source_review_id=page.evaluate("AppStorage.scheduleReview('R24-MATH-A-Q1-1','CALCULATION',false).reviewItemId")
+    flow_spec=page.evaluate("buildReinforcementSpec(AppStorage.session('flow-source'))")
+    assert flow_spec["problemIds"][0]=="R24-MATH-A-Q1-1"
+    assert flow_spec["mappingBySourceProblemId"]["R24-MATH-A-Q1-1"]["basis"]=="explicit-primarySkill"
+    assert len(flow_spec["mappingBySourceProblemId"]["R24-MATH-A-Q1-1"]["practiceProblemIds"])==2
+    assert page.evaluate("(ids)=>ids.every(id=>qById(id).primarySkill==='CALCULATION')",flow_spec["mappingBySourceProblemId"]["R24-MATH-A-Q1-1"]["practiceProblemIds"])
+    unmapped=page.evaluate("""()=>buildReinforcementSpec({sessionId:'unmapped-source',examId:'R24-MATH-B',results:[{problemId:'R24-MATH-B-Q4-5',correct:false,reviewRequired:false}]}).unmappedSourceProblemIds""")
+    assert unmapped==["R24-MATH-B-Q4-5"]
+    page.evaluate("renderSessionResult(AppStorage.session('flow-source'))")
+    assert "過去問" in page.locator(".workflow-strip").inner_text()
+    page.get_by_role("button",name="誤答の解き直し・類題を始める").click()
+    assert "元問題の解き直し" in page.locator("#app").inner_text()
+    assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1")
+    page.get_by_role("button",name="中断して戻る").first.click()
+    assert "途中から再開" in page.locator("#app").inner_text()
+    page.get_by_role("button",name="途中から再開").click()
+    assert "元問題の解き直し" in page.locator("#app").inner_text()
+    page.locator('[data-slot="value"]').fill("-1")
+    page.get_by_role("button",name="採点").click()
+    assert page.evaluate("AppStorage.session('reinforce-flow-source').status")=="active"
+    page.get_by_role("button",name="次のおすすめ").click()
+    assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.index")==1
+    assert page.evaluate("qById(AppStorage.session('reinforce-flow-source').problemId).sourceType")=="FIXED_PRACTICE"
+    assert page.evaluate("id=>AppStorage.reviewItem(id).status",source_review_id)=="done"
+    l1_id=page.evaluate("AppStorage.session('reinforce-flow-source').problemId")
+    l1_expected=page.evaluate("id=>String(qById(id).answerCandidate??qById(id).answerSpec.expected)",l1_id)
+    page.locator('[data-slot="value"]').fill(l1_expected)
+    page.get_by_role("button",name="採点").click()
+    page.get_by_role("button",name="次のおすすめ").click()
+    assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.index")==2
+    assert page.evaluate("""id=>{const source=qById(id),pending=AppStorage.get().reviewItems.find(r=>r.status==='pending'&&qById(r.problemId)?.practiceLevel==='RETENTION');return !!pending&&qById(pending.problemId).familyId===source.familyId}""",l1_id)
+    flow_session=page.evaluate("AppStorage.session('reinforce-flow-source')")
+    flow_session["status"]="finished"
+    page.evaluate("s=>AppStorage.setSession(s.sessionId,s)",flow_session)
+
     # Practice: wrong answer does not immediately expose final answer.
     page.evaluate("render('practice')")
     page.wait_for_timeout(100)

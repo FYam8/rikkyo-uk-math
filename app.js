@@ -135,6 +135,65 @@ function modeStats(mode){
   return {n:a.length,c:a.filter(x=>x.correct).length};
 }
 
+// ---------- past paper -> source review -> fixed practice ----------
+function reinforcementSessionId(sourceSessionId){return `reinforce-${sourceSessionId}`;}
+function modeForPractice(q){return q.practiceLevel==="TRANSFER"?"transfer":q.practiceLevel==="RETENTION"?"retention":"learning";}
+function stableNumber(value){let n=2166136261;for(const ch of String(value)){n^=ch.charCodeAt(0);n=Math.imul(n,16777619);}return n>>>0;}
+function deterministicBankPick(pool,key,count,used){
+  const sorted=[...pool].sort((a,b)=>problemIdOf(a).localeCompare(problemIdOf(b))),picked=[];
+  if(!sorted.length)return picked;
+  const offset=stableNumber(key)%sorted.length;
+  for(let i=0;i<sorted.length&&picked.length<count;i++){const q=sorted[(offset+i)%sorted.length],id=problemIdOf(q);if(!used.has(id)){used.add(id);picked.push(q);}}
+  return picked;
+}
+function sourceWrongResults(s){return (s?.results||[]).filter(result=>result.correct===false&&!result.reviewRequired);}
+function reinforcementForSource(sourceSessionId){return AppStorage.session(reinforcementSessionId(sourceSessionId));}
+function buildReinforcementSpec(sourceSession){
+  const wrong=sourceWrongResults(sourceSession),used=new Set(),problemIds=[],mappingBySourceProblemId={},stageByProblemId={},unmappedSourceProblemIds=[];
+  for(const result of wrong){
+    const source=qById(result.problemId);if(!source)continue;
+    problemIds.push(problemIdOf(source));stageByProblemId[problemIdOf(source)]="source-review";
+    const matched=[];
+    for(const level of ["L1","L2"]){
+      const all=BANK.filter(q=>q.primarySkill===source.primarySkill&&q.practiceLevel===level),unseen=all.filter(q=>AppStorage.exposureStatus(problemIdOf(q))==="unseen"),pool=unseen.length?unseen:all;
+      for(const q of deterministicBankPick(pool,`${problemIdOf(source)}:${level}`,1,used)){const id=problemIdOf(q);matched.push(id);problemIds.push(id);stageByProblemId[id]=level.toLowerCase();}
+    }
+    mappingBySourceProblemId[problemIdOf(source)]={basis:"explicit-primarySkill",primarySkill:source.primarySkill,practiceProblemIds:matched};
+    if(!matched.length)unmappedSourceProblemIds.push(problemIdOf(source));
+  }
+  for(const skill of [...new Set(wrong.map(result=>qById(result.problemId)?.primarySkill).filter(Boolean))]){
+    const pool=BANK.filter(q=>q.primarySkill===skill&&q.practiceLevel==="TRANSFER"&&cleanTransferEligible(q));
+    for(const q of deterministicBankPick(pool,`${sourceSession.sessionId}:${skill}:transfer`,1,used)){const id=problemIdOf(q);problemIds.push(id);stageByProblemId[id]="transfer";}
+  }
+  return {sourceSessionId:sourceSession.sessionId,sourceExamId:sourceSession.examId,sourceProblemIds:wrong.map(x=>x.problemId),problemIds,mappingBySourceProblemId,stageByProblemId,unmappedSourceProblemIds};
+}
+function pendingReinforcementSource(){
+  return Object.values(AppStorage.get().sessions).filter(s=>s?.status==="finished"&&Array.isArray(s.results)&&sourceWrongResults(s).length)
+    .filter(s=>reinforcementForSource(s.sessionId)?.status!=="finished").sort((a,b)=>String(b.finishedAt||b.startedAt).localeCompare(String(a.finishedAt||a.startedAt)))[0]||null;
+}
+function startReinforcement(sourceSessionId){
+  const source=AppStorage.session(sourceSessionId);if(!source)return render("home");
+  const sid=reinforcementSessionId(sourceSessionId);let session=AppStorage.session(sid);
+  if(!session){
+    const flow=buildReinforcementSpec(source);if(!flow.problemIds.length)return renderReinforcementComplete({flow,status:"finished"});
+    const first=qById(flow.problemIds[0]);session={sessionId:sid,mode:modeForPractice(first),problemId:problemIdOf(first),answerDraft:{},startedAt:new Date().toISOString(),activeMs:0,retryCount:0,hintLevel:0,hintEvents:[],exposureBefore:AppStorage.exposureStatus(problemIdOf(first)),status:"active",flow:{...flow,index:0}};AppStorage.setSession(sid,session);
+  }
+  if(session.status==="finished")return renderReinforcementComplete(session);
+  if(session.problemCompleted)return advanceReinforcement(session,true);
+  renderPracticeQuestion(qById(session.problemId),session);
+}
+function reinforcementStageLabel(s){const stage=s.flow?.stageByProblemId?.[s.problemId];return stage==="source-review"?"元問題の解き直し":stage==="l1"?"L1 基礎補強":stage==="l2"?"L2 実戦補強":stage==="transfer"?"Clean Transfer":"弱点補強";}
+function advanceReinforcement(session,renderNext){
+  const next=(session.flow.index||0)+1;
+  if(next>=session.flow.problemIds.length){session.status="finished";session.flow.index=next;session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);return renderReinforcementComplete(session);}
+  const nextId=session.flow.problemIds[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
+  renderNext?renderPracticeQuestion(q,session):render("home");
+}
+function renderReinforcementComplete(session){
+  const flow=session.flow||session;
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">REINFORCEMENT COMPLETE</span><h1>過去問からの弱点補強が完了</h1><p class="muted">元問題の解き直し、L1/L2類題、Clean Transferまで完了しました。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="done"><b>2</b><span>元問題を直す</span></div><div class="done"><b>3</b><span>L1/L2類題</span></div><div class="done"><b>4</b><span>転移・定着</span></div></div><h2>翌日のRetentionへつなぎました</h2><p>正解した類題は復習予約に入り、期限が来ると「今日の学習」に表示されます。</p><div class="actions"><button onclick="render('home')">ホームへ</button><button class="secondary" onclick="render('exams')">次の過去問</button></div></section>`;
+}
+
 // ---------- source / input ----------
 function sourceBlock(q,open=true){
   const prompt=q.promptText?`<div class="prompt-text">${h(q.promptText)}</div>`:"";
@@ -231,22 +290,29 @@ function routeSnapshot(){
 }
 function resumeLabel(s){
   if(!s)return"";
+  if(s.flow?.sourceSessionId)return`${examById(s.flow.sourceExamId)?.label||"過去問"}の弱点補強 ${Math.min((s.flow.index||0)+1,s.flow.problemIds.length)}/${s.flow.problemIds.length}`;
   if(s.mode==="diagnostic")return"Core Diagnosticの続き";
   if(Array.isArray(s.problemIds))return`${examById(s.examId)?.label||"過去問"} ${Math.min((s.index||0)+1,s.problemIds.length)}/${s.problemIds.length}から再開`;
   const q=qById(s.problemId);return`${q?.sourceType==="FIXED_PRACTICE"?(q.practiceLevel||"類題"):(q?.examId||"問題")} ${q?.label||""}の続き`;
+}
+function preferredActiveSession(){
+  const priority=s=>s.flow?.sourceSessionId?4:s.mode==="diagnostic"?3:Array.isArray(s.problemIds)?2:s.problemId?1:0;
+  return AppStorage.activeSessions().sort((a,b)=>priority(b)-priority(a)||String(b.updatedAt||b.startedAt||"").localeCompare(String(a.updatedAt||a.startedAt||"")))[0]||null;
 }
 function setHomeTarget(id){AppStorage.setTarget(id);render("home");}
 function renderHome(){
   const st=AppStorage.get(),target=st.settings.target||"stable",a=attempts(),graded=a.filter(x=>x.correct===true||x.correct===false),correct=graded.filter(x=>x.correct===true).length,stats=skillStats();
   const pending=st.reviewItems.filter(x=>x.status==="pending"),due=pending.filter(x=>Date.parse(x.dueAt)<=Date.now()).length;
-  const resumable=AppStorage.activeSessions()[0]||null,today=chooseToday(),route=routeSnapshot(),weak=stats.filter(s=>s.state==="weak").sort((x,y)=>x.acc-y.acc).slice(0,3);
-  const todaySource=today.q.sourceType==="FIXED_PRACTICE"?`${today.q.practiceLevel||"類題"} / ${today.q.familyId||today.q.primarySkill}`:`${today.q.examId} ${today.q.label}`;
+  const resumable=preferredActiveSession(),pendingSource=pendingReinforcementSource(),today=chooseToday(),route=routeSnapshot(),weak=stats.filter(s=>s.state==="weak").sort((x,y)=>x.acc-y.acc).slice(0,3);
+  const todaySource=pendingSource?`${examById(pendingSource.examId)?.label||pendingSource.examId}・誤答 ${sourceWrongResults(pendingSource).length}問`:today.q.sourceType==="FIXED_PRACTICE"?`${today.q.practiceLevel||"類題"} / ${today.q.familyId||today.q.primarySkill}`:`${today.q.examId} ${today.q.label}`;
+  const todayReason=pendingSource?"過去問の誤答を直して類題で補強":today.reason;
+  const todayAction=pendingSource?`startReinforcement('${pendingSource.sessionId}')`:`render('today')`;
   app().innerHTML=`
   <section class="card today-hero">
     <div class="today-head"><div><span class="eyebrow">TODAY · ONE CLEAR NEXT STEP</span><h1>今日やること</h1><p>上から順に進めれば大丈夫です。診断、弱点補強、Clean Transfer、翌日定着を学習履歴から自動でつなぎます。</p></div>
     <div class="goal-block"><span>学習目標</span><strong>${h(targetLabel(target))}</strong><small>得点換算ではなく学習優先度</small></div></div>
     <div class="target-row"><span>目標を変更</span>${PROFILE.targets.map(t=>`<button class="target-chip ${target===t.id?"selected":""}" onclick="setHomeTarget('${t.id}')">${h(t.label)}</button>`).join("")}</div>
-    <div class="today-list"><article><span>1</span><div><b>${h(today.reason)}</b><small>${h(todaySource)}・${h(today.q.primarySkillLabel||today.q.primarySkill)}</small></div><button class="primary" onclick="render('today')">今これをやる</button></article></div>
+    <div class="today-list"><article><span>1</span><div><b>${h(todayReason)}</b><small>${h(todaySource)}${pendingSource?"":"・"+h(today.q.primarySkillLabel||today.q.primarySkill)}</small></div><button class="primary" onclick="${todayAction}">今これをやる</button></article></div>
   </section>
   ${resumable?`<section class="card resume-card"><div><span class="eyebrow">RESUME</span><h2>中断した学習を続ける</h2><p class="muted">${h(resumeLabel(resumable))}</p></div><button class="primary" onclick="resumeActiveSession()">途中から再開</button></section>`:""}
   <section class="grid three">
@@ -279,7 +345,8 @@ function renderLibrary(){
 }
 
 function resumeActiveSession(){
-  const s=AppStorage.activeSessions()[0];if(!s)return render("home");
+  const s=preferredActiveSession();if(!s)return render("home");
+  if(s.flow?.sourceSessionId)return s.problemCompleted?advanceReinforcement(s,true):renderPracticeQuestion(qById(s.problemId),s);
   if(s.mode==="diagnostic")return renderDiagnostic();
   if(Array.isArray(s.problemIds)&&s.examId)return renderExamSession(s.sessionId);
   if(s.problemId)return renderPracticeQuestion(qById(s.problemId),s);
@@ -338,9 +405,16 @@ function finishClosedSession(sid){
 }
 function renderSessionResult(s){
   const n=s.results.length,c=s.results.filter(x=>x.correct===true).length,r=s.results.filter(x=>x.reviewRequired).length;
+  const wrong=sourceWrongResults(s),existingFlow=reinforcementForSource(s.sessionId),preview=buildReinforcementSpec(s);
+  const l12Count=preview.problemIds.filter(id=>["l1","l2"].includes(preview.stageByProblemId[id])).length,transferCount=preview.problemIds.filter(id=>preview.stageByProblemId[id]==="transfer").length;
   const bySkill={};
   for(const x of s.results){const q=qById(x.problemId);bySkill[q.primarySkill]??={n:0,c:0};bySkill[q.primarySkill].n++;if(x.correct===true)bySkill[q.primarySkill].c++;}
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">SESSION RESULT</span><h1>${s.mode==="diagnostic"?"診断":"セッション"}結果</h1></div></div><section class="grid three"><div class="card stat"><strong>${c}/${n}</strong><span>独立正答候補との一致</span></div><div class="card stat"><strong>${r}</strong><span>要確認</span></div><div class="card stat"><strong>${n?Math.round(c/n*100):0}%</strong><span>一致率（非公式）</span></div></section><section class="card">
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">SESSION RESULT</span><h1>${s.mode==="diagnostic"?"診断":"セッション"}結果</h1></div></div><section class="grid three"><div class="card stat"><strong>${c}/${n}</strong><span>独立正答候補との一致</span></div><div class="card stat"><strong>${wrong.length}</strong><span>これから直す問題</span></div><div class="card stat"><strong>${r}</strong><span>要確認</span></div></section><section class="card result-wrong-first">
+    <span class="eyebrow">PAST PAPER → PRACTICE</span><h2>${wrong.length?"間違えた問題を直して、対応類題へ進む":"この過去問の必須補強はありません"}</h2>
+    <div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${wrong.length?"current":"done"}"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div>
+    ${wrong.length?`<p>誤答 ${wrong.length}問を元問題から解き直し、明示されたprimarySkillが一致するL1/L2類題 ${l12Count}問${transferCount?`、Clean Transfer ${transferCount}問`:""}へ自動でつなぎます。</p><div class="source-review-list">${wrong.map(x=>{const q=qById(x.problemId),mapped=preview.mappingBySourceProblemId[x.problemId]?.practiceProblemIds||[];return `<article><div><b>${h(q.examId)} ${h(q.label)}</b><small>${h(q.primarySkillLabel||q.primarySkill)}</small></div><span>${mapped.length?`対応類題 ${mapped.length}問`:`元問題の解き直しのみ`}</span></article>`}).join("")}</div><div class="actions"><button onclick="startReinforcement('${s.sessionId}')">${existingFlow?.status==="active"?"弱点補強を続ける":"誤答の解き直し・類題を始める"}</button></div>`:`<div class="actions"><button onclick="render('exams')">次の過去問へ</button></div>`}
+    ${preview.unmappedSourceProblemIds.length?`<p class="small warn">${preview.unmappedSourceProblemIds.map(id=>h(qById(id)?.label||id)).join("、")} は、同じprimarySkillの固定類題Authorityがないため推測で割り当てず、元問題の解き直しだけを行います。</p>`:""}
+  </section><section class="card">
     <p class="muted">公式配点がないため公式得点には換算しません。${s.cleanEligible===false?" この実施はlearner-unseen評価ではありません。":""}</p>
   </section><section class="card"><h2>分野別</h2><div class="table-wrap"><table><tr><th>分野</th><th>一致</th></tr>
     ${Object.entries(bySkill).map(([k,v])=>`<tr><td>${h(k)}</td><td>${v.c}/${v.n}</td></tr>`).join("")}</table>
@@ -348,12 +422,9 @@ function renderSessionResult(s){
 }
 
 // ---------- Today / Review ----------
-function bankFamilyForSkill(skill){
-  const direct=BANK.find(q=>q.primarySkill===skill);
-  return direct?.familyId||null;
-}
 function retentionCandidateFor(q){
-  const fam=q.familyId||bankFamilyForSkill(q.primarySkill);
+  const fam=q.familyId;
+  if(!fam)return null;
   return BANK.find(x=>x.practiceLevel==="RETENTION"&&x.familyId===fam&&AppStorage.exposureStatus(x.id)==="unseen")||null;
 }
 function chooseToday(){
@@ -389,6 +460,8 @@ function chooseToday(){
   return {q:ALL_ITEMS[Math.floor(Math.random()*ALL_ITEMS.length)],mode:"learning",reason:"Mixed練習"};
 }
 function renderToday(){
+  const pendingSource=pendingReinforcementSource();
+  if(pendingSource){const existing=reinforcementForSource(pendingSource.sessionId);return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FOLLOW-UP</span><h1>過去問の弱点を補強</h1><p class="muted">次の過去問へ進む前に、誤答を元問題→固定類題の順で直します。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="current"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div><h2>${h(examById(pendingSource.examId)?.label||pendingSource.examId)}の補強</h2><p>誤答 ${sourceWrongResults(pendingSource).length}問。途中で閉じてもホームのResumeから続けられます。</p><div class="actions"><button onclick="startReinforcement('${pendingSource.sessionId}')">${existing?.status==="active"?"続きから再開":"補強を始める"}</button></div></section>`;}
   const p=chooseToday(),mins=p.q.estimatedMinutesRange||[.5,1.5];
   const target=AppStorage.get().settings.target||"stable",source=p.q.sourceType==="FIXED_PRACTICE"?`${p.q.practiceLevel||"類題"} / ${p.q.familyId||p.q.primarySkill}`:`${p.q.examId} / ${p.q.label}`;
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY</span><h1>今日の学習</h1><p class="muted">学習履歴から、いま一番効果の高い課題を1つ選んでいます。</p></div><span class="route-status">${h(targetLabel(target))}</span></div>
@@ -437,7 +510,8 @@ function openPractice(id,mode="learning",reviewItemId=""){
 }
 function renderPracticeQuestion(q,s){
   AppStorage.setExposure(q.id,"seen");
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">GUIDED PRACTICE</span><h1>問題を解く</h1></div><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div><section class="card practice-card">
+  const flow=s.flow,flowIndex=flow?.index||0;
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">${flow?"PAST PAPER REINFORCEMENT":"GUIDED PRACTICE"}</span><h1>${flow?h(reinforcementStageLabel(s)):"問題を解く"}</h1>${flow?`<p class="muted">過去問の誤答から、元問題→L1/L2類題→Clean Transferの順で進みます。</p>`:""}</div><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div>${flow?`<section class="card reinforcement-progress"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${reinforcementStageLabel(s).includes("元問題")?"current":flowIndex>0?"done":""}"><b>2</b><span>元問題を直す</span></div><div class="${["l1","l2"].includes(flow.stageByProblemId[s.problemId])?"current":flow.stageByProblemId[s.problemId]==="transfer"?"done":""}"><b>3</b><span>L1/L2類題</span></div><div class="${flow.stageByProblemId[s.problemId]==="transfer"?"current":""}"><b>4</b><span>転移・定着</span></div></div><div class="question-progress"><strong>${h(reinforcementStageLabel(s))}</strong><span>${flowIndex+1} / ${flow.problemIds.length}</span></div><div class="progressbar"><div style="width:${Math.round(flowIndex/flow.problemIds.length*100)}%"></div></div></section>`:""}<section class="card practice-card">
     <div class="meta-row"><span class="badge">${h(s.mode)}</span><span class="badge ${q.difficulty.toLowerCase()}">${q.difficulty}</span><span class="badge">${h(q.primarySkillLabel)}</span><span class="badge">${h(targetFor(q))}</span></div>
     <div class="question-title">${q.sourceType==="FIXED_PRACTICE"?h((q.practiceLevel||"")+" / "+(q.familyId||q.primarySkill)):h(q.examId+" "+q.label)}</div>
     ${sourceBlock(q,true)}${qInput(q,s.answerDraft||{})}${mathKeypad()}
@@ -472,11 +546,13 @@ function submitPractice(sid,q){
   }
   if(g.correct){
     let prior=null;if(s.reviewItemId){const ri=AppStorage.reviewItem(s.reviewItemId);prior=ri?.stage??0;AppStorage.setReviewStatus(s.reviewItemId,"done");}
-    if(q.practiceLevel!=="RETENTION"){
+    const isSourceReview=s.flow?.stageByProblemId?.[problemIdOf(q)]==="source-review";
+    if(isSourceReview){const pending=AppStorage.get().reviewItems.find(item=>item.problemId===problemIdOf(q)&&item.status==="pending");if(pending)AppStorage.setReviewStatus(pending.reviewItemId,"done");}
+    else if(q.practiceLevel!=="RETENTION"){
       const rq=retentionCandidateFor(q);
       AppStorage.scheduleReview(rq?.id||q.id,rq?.primarySkill||q.primarySkill,true,prior);
     }
-    s.status="finished";AppStorage.setSession(sid,s);
+    s.problemCompleted=true;s.status=s.flow?.sourceSessionId?"active":"finished";AppStorage.setSession(sid,s);
     f.className="ok";f.innerHTML=`正解。${explanationHtml(q)}<div class="actions"><button onclick="finishPractice('${sid}',true)">次のおすすめ</button><button class="secondary" onclick="finishPractice('${sid}',false)">終了</button></div>`;
     document.getElementById("submitPractice").disabled=true;document.getElementById("hint1Btn").disabled=true;return;
   }
@@ -485,7 +561,14 @@ function submitPractice(sid,q){
   activeTimer=createActiveTimer(0);activeTimerCommit=ms=>{const c=AppStorage.session(sid);if(c){c.activeMs=ms;AppStorage.setSession(sid,c);}};
   mountFloatingTimer();
 }
-function finishPractice(sid,next){const s=AppStorage.session(sid);if(s){s.status="finished";AppStorage.setSession(sid,s);}next?render("today"):render("home");}
+function finishPractice(sid,next){
+  const s=AppStorage.session(sid);if(!s)return render("home");
+  if(s.flow?.sourceSessionId){
+    if(s.problemCompleted)return advanceReinforcement(s,next);
+    s.status="active";s.activeMs=stopTimer();AppStorage.setSession(sid,s);return render("home");
+  }
+  s.status="finished";AppStorage.setSession(sid,s);next?render("today"):render("home");
+}
 
 // ---------- Past exams / exam mode ----------
 function renderExams(){
