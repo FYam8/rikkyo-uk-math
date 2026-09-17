@@ -133,6 +133,20 @@ function skillStats(){
     return {skill,...x,acc,state};
   });
 }
+function weaknessTopics(){
+  const latest=new Map();
+  for(const attempt of attempts())if(attempt.correct===true||attempt.correct===false)latest.set(attempt.problemId,attempt);
+  const grouped={};
+  for(const attempt of latest.values()){
+    if(attempt.correct!==false)continue;
+    const q=qById(attempt.problemId),skill=attempt.skill||q?.primarySkill||"OTHER";
+    if(!grouped[skill])grouped[skill]=[];
+    grouped[skill].push(attempt);
+  }
+  const stats=new Map(skillStats().map(item=>[item.skill,item]));
+  return Object.entries(grouped).map(([skill,items])=>({skill,items,stat:stats.get(skill)}))
+    .sort((a,b)=>b.items.length-a.items.length||(a.stat?.acc||0)-(b.stat?.acc||0)||a.skill.localeCompare(b.skill));
+}
 function modeStats(mode){
   const a=attempts().filter(x=>x.mode===mode&&(x.correct===true||x.correct===false));
   return {n:a.length,c:a.filter(x=>x.correct).length};
@@ -187,6 +201,7 @@ function startReinforcement(sourceSessionId){
 }
 function reinforcementStageLabel(s){const stage=s.flow?.stageByProblemId?.[s.problemId];return stage==="source-review"?"元問題の解き直し":stage==="l1"?"L1 基礎補強":stage==="l2"?"L2 実戦補強":stage==="transfer"?"Clean Transfer":"弱点補強";}
 function advanceReinforcement(session,renderNext){
+  if(session.flow?.type==="weakness-set")return advanceWeaknessSet(session,renderNext);
   const next=(session.flow.index||0)+1;
   if(next>=session.flow.problemIds.length){session.status="finished";session.flow.index=next;session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);return renderReinforcementComplete(session);}
   const nextId=session.flow.problemIds[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
@@ -195,6 +210,48 @@ function advanceReinforcement(session,renderNext){
 function renderReinforcementComplete(session){
   const flow=session.flow||session;
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">REINFORCEMENT COMPLETE</span><h1>過去問からの弱点補強が完了</h1><p class="muted">元問題の解き直し、L1/L2類題、Clean Transferまで完了しました。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="done"><b>2</b><span>元問題を直す</span></div><div class="done"><b>3</b><span>L1/L2類題</span></div><div class="done"><b>4</b><span>転移・定着</span></div></div><h2>翌日のRetentionへつなぎました</h2><p>正解した類題は復習予約に入り、期限が来ると「今日の学習」に表示されます。</p><div class="actions"><button onclick="render('home')">ホームへ</button><button class="secondary" onclick="render('exams')">次の過去問</button></div></section>`;
+}
+function weaknessFlowSessions(skill){
+  return Object.values(AppStorage.get().sessions).filter(s=>s?.flow?.type==="weakness-set"&&s.flow.skill===skill)
+    .sort((a,b)=>String(b.flow?.createdAt||b.startedAt).localeCompare(String(a.flow?.createdAt||a.startedAt)));
+}
+function weaknessSetQuestions(skill){
+  const size=PROFILE.practicePolicy?.weaknessSetSize||4,used=new Set(),picked=[];
+  for(const level of ["L1","L2"]){
+    const all=BANK.filter(q=>q.primarySkill===skill&&q.practiceLevel===level),unseen=all.filter(q=>AppStorage.exposureStatus(problemIdOf(q))==="unseen"),pool=unseen.length?unseen:all;
+    picked.push(...deterministicBankPick(pool,`${skill}:${level}:weakness-set`,Math.ceil(size/2),used));
+  }
+  if(picked.length<size){
+    const all=BANK.filter(q=>q.primarySkill===skill&&["L1","L2"].includes(q.practiceLevel)),unseen=all.filter(q=>AppStorage.exposureStatus(problemIdOf(q))==="unseen"),pool=unseen.length?unseen:all;
+    picked.push(...deterministicBankPick(pool,`${skill}:weakness-set:fallback`,size-picked.length,used));
+  }
+  return picked.slice(0,size);
+}
+function startWeaknessSet(skill){
+  const existing=weaknessFlowSessions(skill).find(s=>s.status==="active");
+  if(existing)return renderPracticeQuestion(qById(existing.problemId),existing);
+  const selected=weaknessSetQuestions(skill);
+  if(!selected.length)return render("practice");
+  const ids=selected.map(problemIdOf),first=selected[0],sid=`weakness-${stableNumber(skill)}-${AppStorage.uuid()}`;
+  const flow={type:"weakness-set",skill,problemIds:ids,completedQuestionIds:[],index:0,createdAt:new Date().toISOString()};
+  const session={sessionId:sid,mode:modeForPractice(first),problemId:problemIdOf(first),answerDraft:{},startedAt:new Date().toISOString(),activeMs:0,retryCount:0,hintLevel:0,hintEvents:[],exposureBefore:AppStorage.exposureStatus(problemIdOf(first)),status:"active",flow};
+  AppStorage.setSession(sid,session);renderPracticeQuestion(first,session);
+}
+function advanceWeaknessSet(session,renderNext){
+  const completed=new Set(session.flow.completedQuestionIds||[]),ids=session.flow.problemIds||[];
+  if(ids.length&&ids.every(id=>completed.has(id))){
+    session.status="finished";session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);
+    return renderWeaknessSetComplete(session);
+  }
+  let next=-1;
+  for(let offset=1;offset<=ids.length;offset++){const index=((session.flow.index||0)+offset)%ids.length;if(!completed.has(ids[index])){next=index;break;}}
+  if(next<0)return renderWeaknessSetComplete(session);
+  const nextId=ids[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
+  renderNext?renderPracticeQuestion(q,session):render("home");
+}
+function renderWeaknessSetComplete(session){
+  const count=session.flow?.problemIds?.length||0,skill=session.flow?.skill||"弱点分野";
+  app().innerHTML=`<section class="card mastery-card"><span class="eyebrow">MASTERED FOR NOW</span><h1>${count}/${count}問完了</h1><p><b>${h(skill)}</b>は、いったん克服しました。開始時に固定した${count}問すべてに自力で正解した履歴を保存しています。</p><p class="muted">正解済み問題は維持し、未正解問題だけを周回しました。異なる設定への転移は、次の未見問題で別に確認します。</p><div class="actions"><button onclick="render('practice')">次の弱点へ</button><button class="secondary" onclick="startWeaknessSet('${h(skill)}')">新しいセットで再練習</button><button class="secondary" onclick="render('home')">ホームへ</button></div></section>`;
 }
 
 // ---------- source / input ----------
@@ -418,7 +475,7 @@ function renderHome(){
   <section class="card home-secondary"><div><h2>演習・学習履歴・データ</h2><p class="muted">過去問、弱点別練習、学習記録、バックアップへ移動できます。</p></div><div class="actions"><button onclick="render('library')">演習ライブラリ</button><button class="secondary" onclick="render('progress')">学習記録</button><button class="secondary" onclick="render('data')">データ管理</button></div></section>`;
 }
 
-function openSkillPractice(skill){render("practice");document.getElementById("pfSkill").value=skill;document.getElementById("pfSeen").value="unseen";renderPracticeList();}
+function openSkillPractice(skill){startWeaknessSet(skill);}
 
 function renderLibrary(selectedExamId=""){
   const next=nextPastPaperTask(),examId=selectedExamId||next?.examId||EXAMS[0]?.examId,current=examById(examId)||EXAMS[0],questions=examQuestions(current.examId),locked=current.role==="confirmation"&&examExposure("R26-MATH-B")!=="practiced",holdout=current.role==="evaluation"&&examExposure(current.examId)==="unseen",majors=[...new Set(questions.map(q=>q.majorQuestion))];
@@ -571,13 +628,18 @@ function renderReview(){
 function renderPractice(){
   const examOptions=['<option value="">全ソース</option>','<option value="PRACTICE-BANK">類題Bank</option>',...EXAMS.filter(e=>e.role!=="evaluation"&&e.role!=="confirmation").map(e=>`<option value="${h(e.examId)}">${h(e.label)}</option>`)].join("");
   const skills=[...new Set(ALL_ITEMS.map(q=>q.primarySkill))].sort();
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">FILTERED PRACTICE</span><h1>弱点別・固定類題</h1><p class="muted">分野、難度、学習段階、未見状態から絞り込めます。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div><section class="card"><div class="filter-grid">
+  const topics=weaknessTopics(),limit=PROFILE.practicePolicy?.weaknessDisplayLimit||3,visible=topics.slice(0,limit),unresolved=topics.reduce((sum,item)=>sum+item.items.length,0),top=topics[0]?.skill||"--";
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">MISTAKE REVIEW</span><h1>弱点・固定類題</h1><p class="muted">過去問と学習履歴の未解決問題から、いま直す弱点を絞ります。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div>
+  <section class="grid three"><article class="card stat"><b>${unresolved}</b><span>未解決設問</span></article><article class="card stat"><b>${topics.length}</b><span>いま直す弱点分野</span></article><article class="card stat"><b>${h(top)}</b><span>最多の弱点</span></article></section>
+  <section class="card"><h2>直す順番</h2><p class="muted">元問題の誤答を確認し、対応するL1/L2固定類題を開始時に固定して、未正解の問題だけ周回します。</p><div class="review-order"><div><b>1</b><span>元問題を確認</span><small>過去問の誤答から弱点を特定</small></div><div><b>2</b><span>固定類題セット</span><small>開始時に4問を固定</small></div><div><b>3</b><span>未正解だけ再挑戦</span><small>正解済みは維持して定着へ</small></div></div></section>
+  ${visible.length?`<section class="review-topics">${visible.map(({skill,items,stat},index)=>{const sessions=weaknessFlowSessions(skill),active=sessions.find(s=>s.status==="active"),latest=sessions[0],required=active?.flow?.problemIds?.length||latest?.flow?.problemIds?.length||PROFILE.practicePolicy?.weaknessSetSize||4,completed=active?.flow?.completedQuestionIds?.length||latest?.flow?.completedQuestionIds?.length||0,priority=index===0?"A":index===1?"B":"C";return `<article class="card"><div class="section-head"><div><span class="eyebrow">補強優先度 ${priority}・${priority==="A"?"当日":priority==="B"?"翌日":"軽く確認"}</span><h3>${h(skill)}</h3></div><b>${items.length}問</b></div><p><b>${h(skill)}</b>の固定類題。開始したセットの完了状態を独立して管理します。</p><div class="progress-track"><i style="width:${required?Math.min(100,completed/required*100):0}%"></i></div><div class="actions"><button class="${active?"":"primary"}" onclick="startWeaknessSet('${h(skill)}')">${active?`固定類題を続ける ${completed}/${required}`:"固定類題セットで克服する"}</button></div><p class="muted">誤答しても必要問題数は増えません。正解済み問題は維持し、未正解問題だけを再挑戦します。</p>${stat?`<p class="small muted">学習履歴 ${stat.n}回・正答率 ${Math.round(stat.acc*100)}%</p>`:""}</article>`;}).join("")}</section>`:`<section class="card source-review-gate"><span class="eyebrow">DIAGNOSIS REQUIRED</span><h2>まず過去問を解いて弱点を見つけます</h2><p>全小問を採点すると、未解決問題と対応する固定類題セットをここに表示します。</p><div class="actions"><button onclick="render('exams')">過去問を解く</button><button class="secondary" onclick="render('home')">ホームへ戻る</button></div></section>`}
+  <details class="card optional-practice"><summary><b>固定類題を分野・Levelから探す</b><span>任意練習</span></summary><p class="muted">本線は上の弱点別固定セットです。必要な場合だけ411問Bankを直接絞り込みます。</p><div class="filter-grid">
     <label>ソース<select id="pfExam">${examOptions}</select></label>
     <label>分野<select id="pfSkill"><option value="">全分野</option>${skills.map(s=>`<option>${h(s)}</option>`).join("")}</select></label>
     <label>難度<select id="pfDiff"><option value="">A/B/Cすべて</option><option>A</option><option>B</option><option>C</option></select></label>
     <label>Level<select id="pfLevel"><option value="">すべて</option><option value="L1">L1</option><option value="L2">L2</option><option value="TRANSFER">Transfer</option><option value="RETENTION">Retention</option></select></label>
     <label>表示<select id="pfSeen"><option value="">すべて</option><option value="unseen">未見のみ</option><option value="wrong">誤答あり</option></select></label>
-    </div><div class="actions"><button id="pfApply">絞り込む</button></div><div id="practiceList" class="practice-list"></div></section>`;
+    </div><div class="actions"><button id="pfApply">絞り込む</button></div><div id="practiceList" class="practice-list"></div></details>`;
   document.getElementById("pfApply").onclick=renderPracticeList;renderPracticeList();
 }
 function renderPracticeList(){
@@ -600,6 +662,7 @@ function openPractice(id,mode="learning",reviewItemId=""){
   AppStorage.setSession(s.sessionId,s);renderPracticeQuestion(q,s);
 }
 function renderPracticeQuestion(q,s){
+  if(s.flow?.type==="weakness-set")return renderWeaknessSetQuestion(q,s);
   AppStorage.setExposure(q.id,"seen");
   const flow=s.flow,flowIndex=flow?.index||0;
   const title=q.sourceType==="FIXED_PRACTICE"?h((q.practiceLevel||"")+" / "+(q.familyId||q.primarySkill)):h(q.examId+" "+q.label);
@@ -618,6 +681,16 @@ function renderPracticeQuestion(q,s){
   bindMathKeypad();
   document.getElementById("hint1Btn").onclick=()=>showHint(s.sessionId,q,1);
   document.getElementById("submitPractice").onclick=()=>submitPractice(s.sessionId,q);
+}
+function renderWeaknessSetQuestion(q,s){
+  AppStorage.setExposure(q.id,"seen");
+  const completed=new Set(s.flow.completedQuestionIds||[]),required=s.flow.problemIds.length,done=completed.size,title=h((q.practiceLevel||"")+" / "+(q.familyId||q.primarySkill));
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">PRACTICE · FIXED SET</span><h1>${h(s.flow.skill)}</h1><p class="muted">開始時に固定した${required}問を、未正解の問題だけ周回します。</p></div><div class="streak-badge">完了 ${done}/${required}</div></div><div class="progress-track"><i style="width:${required?done/required*100:0}%"></i></div>
+    <article class="card practice-card wase-practice"><div class="qtop"><div><span class="eyebrow">${h(q.practiceLevel||"FIXED PRACTICE")}</span><h2>${title}</h2></div><span class="progress-pill">完了 ${done}/${required}</span></div>${sourceBlock(q,true)}<div class="practice-answer"><h3>解答</h3>${qInput(q,s.answerDraft||{})}<div class="math-keypad-wrap">${mathKeypad()}</div><div id="feedback"></div><div class="actions practice-actions"><button id="submitPractice">採点する</button><button class="secondary" id="hint1Btn">ヒント</button><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断</button></div></div></article>
+    <section class="card"><h2>${required}問完了のルール</h2><p>開始時に固定した${required}問すべてに自力で正解すると「いったん克服」です。誤答があっても正解済み問題は維持し、未正解問題だけを周回します。</p><p class="muted">このセットは同型練習の確認用です。転移はClean Transferと次の未見過去問で別に確認します。</p></section>`;
+  activeTimer=createActiveTimer(s.activeMs||0);activeTimerCommit=ms=>{const c=AppStorage.session(s.sessionId);if(c){c.activeMs=ms;AppStorage.setSession(s.sessionId,c);}};mountFloatingTimer();
+  bindDraftSaver(q,ans=>{const c=AppStorage.session(s.sessionId);if(c){c.answerDraft=ans;c.activeMs=activeTimer?activeTimer.ms():c.activeMs;AppStorage.setSession(s.sessionId,c);}});bindMathKeypad();
+  document.getElementById("hint1Btn").onclick=()=>showHint(s.sessionId,q,1);document.getElementById("submitPractice").onclick=()=>submitPractice(s.sessionId,q);
 }
 function showHint(sid,q,level){
   const s=AppStorage.session(sid);if(!s)return;s.hintLevel=Math.max(s.hintLevel,level);s.hintEvents.push({level,at:new Date().toISOString()});AppStorage.setSession(sid,s);
@@ -646,17 +719,22 @@ function submitPractice(sid,q){
       const rq=retentionCandidateFor(q);
       AppStorage.scheduleReview(rq?.id||q.id,rq?.primarySkill||q.primarySkill,true,prior);
     }
-    s.problemCompleted=true;s.status=s.flow?.sourceSessionId?"active":"finished";AppStorage.setSession(sid,s);
+    if(s.flow?.type==="weakness-set")s.flow.completedQuestionIds=[...new Set([...(s.flow.completedQuestionIds||[]),problemIdOf(q)])];
+    s.problemCompleted=true;s.status=s.flow?.problemIds?"active":"finished";AppStorage.setSession(sid,s);
     f.className="ok";f.innerHTML=`正解。${explanationHtml(q)}<div class="actions"><button onclick="finishPractice('${sid}',true)">次のおすすめ</button><button class="secondary" onclick="finishPractice('${sid}',false)">終了</button></div>`;
     document.getElementById("submitPractice").disabled=true;document.getElementById("hint1Btn").disabled=true;return;
   }
   AppStorage.scheduleReview(q.id,q.primarySkill,false);s.retryCount++;s.activeMs=0;s.startedAt=now;AppStorage.setSession(sid,s);
-  f.className="ng";f.innerHTML=s.retryCount===1?"不正解。答えはまだ表示しません。条件・符号・図を見直して再挑戦してください。":"まだ一致しません。H1/H2を使うか、もう一度自力で修正できます。";
+  f.className="ng";f.innerHTML=(s.retryCount===1?"不正解。答えはまだ表示しません。条件・符号・図を見直してください。":"まだ一致しません。H1/H2を使うか、もう一度自力で修正できます。")+(s.flow?.type==="weakness-set"?`<div class="actions"><button class="secondary" onclick="finishPractice('${sid}',true)">次の問題へ</button></div>`:"");
   activeTimer=createActiveTimer(0);activeTimerCommit=ms=>{const c=AppStorage.session(sid);if(c){c.activeMs=ms;AppStorage.setSession(sid,c);}};
   mountFloatingTimer();
 }
 function finishPractice(sid,next){
   const s=AppStorage.session(sid);if(!s)return render("home");
+  if(s.flow?.type==="weakness-set"){
+    if(next)return advanceWeaknessSet(s,true);
+    s.status="active";s.activeMs=stopTimer();AppStorage.setSession(sid,s);return render("practice");
+  }
   if(s.flow?.sourceSessionId){
     if(s.problemCompleted)return advanceReinforcement(s,next);
     s.status="active";s.activeMs=stopTimer();AppStorage.setSession(sid,s);return render("home");
