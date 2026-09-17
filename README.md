@@ -1,4 +1,10 @@
-# 立教数学 Full v1.0 RC2
+# 立教英国学院 数学 — Canonical Engine Candidate
+
+Canonical engine source is pinned in `engine-source.json` at WaseShibu main
+`72d5ac9d5c49f991d76f8bb93e0a04b82e74fb3e`. The original RC2
+files remain authoritative migration input and audit evidence; deployment
+generates the one-to-one normalized `data/canonical_content.json` runtime
+package deterministically.
 
 FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0の目標量を満たす固定類題Bank 411問を統合したRelease Candidate。
 
@@ -37,8 +43,12 @@ FY26A Q5(3)は、D=Cも形式的に等積条件を満たすため `REVIEW_REQUIR
 - Hint ladder / Retry
 - Clean Transfer eligibility (near-duplicate / section motif / FY26 parallel form)
 - Mastery = accuracy + Clean Transfer + Retention
-- localStorage schemaVersion=3
-- legacy migration / Export / Import / checksum / attemptId dedupe
+- canonical learner-state contract v1 under Rikkyo-only identities
+- Full v3 remains as a non-destructive compatibility shadow and rollback source
+- exact device-local restore points before migration/import/reset
+- no-loss Import: same-ID/different-evidence conflicts fail closed
+- device identity is excluded from portable backup while record provenance remains
+- FY26B learner-unseen content is excluded from learning/Hint/explanation UX; FY26A unlocks after FY26B
 - noindex / mobile-first
 
 ## 起動
@@ -49,6 +59,10 @@ FY26A Q5(3)は、D=Cも形式的に等積条件を満たすため `REVIEW_REQUIR
 - `node tests/content.test.js`
 - `node tests/scoring_all.test.js`
 - `node tests/storage.test.js`
+- `node tests/canonical_content.test.js`
+- `node tests/canonical_migration.test.js`
+- `node tests/holdout_isolation.test.js`
+- `node scripts/run-regression.mjs` (release gate)
 - `node tests/release_invariants.test.js`
 - `python tests/source_page_verify.py`
 - `python tests/bank_math_verify.py`
@@ -58,6 +72,15 @@ FY26A Q5(3)は、D=Cも形式的に等積条件を満たすため `REVIEW_REQUIR
 - `python tests/fy25b_math_verify.py`
 - `python tests/fy26a_math_verify.py`
 - `python tests/fy26b_math_verify.py`
+
+## Canonical engine update flow
+
+`.github/workflows/sync-engine-candidate.yml` accepts an immutable
+WaseShibu commit SHA, copies only the declared `src/engine/**` files, updates
+the hash pin, and runs the full Rikkyo regression suite. It opens a candidate
+PR only on green; it never updates or deploys Rikkyo production directly.
+Rikkyo-owned school profile, content, assets, scoring, and persistence files
+are excluded from propagation.
 - `python tests/browser_inmemory_smoke.py`
 - `python tests/bank_mastery_smoke.py`
 

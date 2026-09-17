@@ -24,52 +24,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify RC2 release manifest
+      - name: Verify canonical release manifest
         run: |
-          python - <<'PY'
-          import hashlib, json, pathlib, sys
-          root = pathlib.Path('.')
-          manifest = json.loads((root/'release_manifest.json').read_text())
-          assert manifest['release'] == 'v1.0-rc2'
-          assert manifest['pastExamQuestions'] == 212
-          assert manifest['fullyAuthoredPastExamExplanations'] == 212
-          assert manifest['practiceBankQuestions'] == 411
-          assert manifest['totalProblemIds'] == 623
-          errors=[]
-          for rel, expected in manifest['fileChecksums'].items():
-              p=root/rel
-              if not p.is_file():
-                  errors.append(f'missing: {rel}')
-                  continue
-              got=hashlib.sha256(p.read_bytes()).hexdigest()
-              if got != expected:
-                  errors.append(f'hash mismatch: {rel}')
-          if errors:
-              print('\n'.join(errors))
-              sys.exit(1)
-          print(f"manifest verified: {len(manifest['fileChecksums'])} files")
-          PY
+          node scripts/build-canonical-content.mjs
+          node scripts/verify-release-manifest.mjs
 
-      - name: Install Python test dependency
-        run: python -m pip install --disable-pip-version-check --no-cache-dir sympy
+      - name: Install Python and browser test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir sympy playwright
+          python -m playwright install --with-deps chromium
 
       - name: Run release tests
         run: |
-          node --check app.js
-          node --check scoring.js
-          node --check storage.js
-          node tests/content.test.js
-          node tests/scoring_all.test.js
-          node tests/storage.test.js
-          node tests/release_invariants.test.js
-          node tests/all_explanations.test.js
-          python tests/bank_math_verify.py
-          python tests/fy24a_math_verify.py
-          python tests/fy24b_math_verify.py
-          python tests/fy25a_full_math_verify.py
-          python tests/fy25b_math_verify.py
-          python tests/fy26a_math_verify.py
-          python tests/fy26b_math_verify.py
+          node scripts/run-regression.mjs
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
