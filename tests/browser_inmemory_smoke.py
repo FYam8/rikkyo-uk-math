@@ -44,14 +44,26 @@ with sync_playwright() as p:
     assert page.evaluate("AppStorage.migrationReport().status")=="migrated"
     assert page.evaluate("AppStorage.get().attempts.length")==1
     assert page.evaluate("localStorage.getItem('rikkyoMathFull:prod:v3')!==null")
-    assert "途中から再開" in page.locator("#app").inner_text()
+    assert "まず過去問一式で現在地を確認" in page.locator("#app").inner_text()
+    assert "以前の単問学習も保存されています" in page.locator("#app").inner_text()
 
-    # Diagnostic: no metadata badges before submit.
-    page.locator("#nav").get_by_role("button",name="演習ライブラリ").click()
-    page.get_by_role("button",name="診断を開く").click()
-    page.wait_for_timeout(100)
+    # Fresh learner starts with the full FY25A past paper, never an isolated
+    # FY24 training item. The next paper appears only after its reinforcement.
+    page.evaluate("AppStorage.reset(); render('home')")
+    home_text=page.locator("#app").inner_text()
+    assert "まず過去問一式で現在地を確認" in home_text
+    assert "FY25 数学A・全" in home_text
+    assert "R24-MATH-A 1(1)" not in home_text
+    page.get_by_role("button",name="過去問を始める").click()
     assert "CORE DIAGNOSTIC" in page.locator("#app").inner_text()
     assert page.locator("#app .badge").count()==0
+    assert page.evaluate("AppStorage.session('diag-R25-MATH-A-full-v3').problemIds.length")==page.evaluate("examQuestions('R25-MATH-A').length")
+    page.evaluate("""()=>{const ids=examQuestions('R25-MATH-A').map(q=>q.id),results=ids.map((id,i)=>({problemId:id,correct:i!==0,reviewRequired:false}));ids.forEach(id=>AppStorage.setExposure(id,'practiced'));AppStorage.setSession('diag-R25-MATH-A-full-v3',{sessionId:'diag-R25-MATH-A-full-v3',mode:'diagnostic',examId:'R25-MATH-A',problemIds:ids,index:ids.length-1,answers:{},results,startedAt:'2026-09-01T00:00:00.000Z',finishedAt:'2026-09-01T00:30:00.000Z',status:'finished'});render('home')}""")
+    assert "過去問の誤答を直して類題で補強" in page.locator("#app").inner_text()
+    page.evaluate("""()=>{const source=AppStorage.session('diag-R25-MATH-A-full-v3'),flow=buildReinforcementSpec(source);AppStorage.setSession('reinforce-diag-R25-MATH-A-full-v3',{sessionId:'reinforce-diag-R25-MATH-A-full-v3',status:'finished',flow:{...flow,index:flow.problemIds.length}});render('home')}""")
+    home_text=page.locator("#app").inner_text()
+    assert "次の過去問一式に挑戦" in home_text
+    assert "FY24 数学A・全" in home_text
 
     # WaseShibu-style route: a wrong past-paper item must lead to source review,
     # explicit-primarySkill L1/L2 practice, and clean transfer in one resumable flow.
@@ -143,12 +155,13 @@ with sync_playwright() as p:
 
     # Portable backup round-trip keeps the Rikkyo identity and same records.
     page.evaluate("render('data')")
+    attempt_count_before=page.evaluate("AppStorage.get().attempts.length")
     page.get_by_role("button",name="Export").click()
     exported=page.locator("#io").input_value()
     assert json.loads(exported)["app"]=="rikkyo-uk-math"
     page.get_by_role("button",name="Import").click()
     page.wait_for_timeout(50)
-    assert page.evaluate("AppStorage.get().attempts.some(a=>a.attemptId==='seed')")
+    assert page.evaluate("AppStorage.get().attempts.length")==attempt_count_before
 
     # Imported/user-derived strings stay escaped in Progress.
     page.evaluate("""()=>AppStorage.addAttempt({attemptId:'xss1',problemId:'R24-MATH-A-Q1-1',contentVersion:1,answerSpecVersion:1,answerSnapshot:{value:'0'},correct:false,officialScore:null,learningScore:0,startedAt:new Date().toISOString(),submittedAt:new Date().toISOString(),activeDurationMs:1000,hintEvents:[],retryCount:0,mode:'learning',learnerExposureStatusBeforeAttempt:'seen',transferEligibleAtAttempt:false,errorCauseCandidates:[],deviceId:AppStorage.get().device.deviceId,sessionId:null,environment:'test',skill:'<img src=x onerror=window.__xss=1>',difficulty:'A'})""")
