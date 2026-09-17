@@ -209,7 +209,7 @@ function startReinforcement(sourceSessionId){
   if(session.problemCompleted)return advanceReinforcement(session,true);
   renderPracticeQuestion(qById(session.problemId),session);
 }
-function reinforcementStageLabel(s){const stage=s.flow?.stageByProblemId?.[s.problemId];return stage==="source-review"?"元問題の解き直し":stage==="l1"?"L1 基礎補強":stage==="l2"?"L2 実戦補強":stage==="transfer"?"Clean Transfer":"弱点補強";}
+function reinforcementStageLabel(s){const stage=s.flow?.stageByProblemId?.[s.problemId];return stage==="source-review"?"元問題の解き直し":stage==="l1"?practiceLevelLabel("L1"):stage==="l2"?practiceLevelLabel("L2"):stage==="transfer"?practiceLevelLabel("TRANSFER"):"弱点補強";}
 function advanceReinforcement(session,renderNext){
   if(session.flow?.type==="weakness-set")return advanceWeaknessSet(session,renderNext);
   const next=(session.flow.index||0)+1;
@@ -219,7 +219,7 @@ function advanceReinforcement(session,renderNext){
 }
 function renderReinforcementComplete(session){
   const flow=session.flow||session;
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">REINFORCEMENT COMPLETE</span><h1>過去問からの弱点補強が完了</h1><p class="muted">元問題の解き直し、L1/L2類題、Clean Transferまで完了しました。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="done"><b>2</b><span>元問題を直す</span></div><div class="done"><b>3</b><span>L1/L2類題</span></div><div class="done"><b>4</b><span>転移・定着</span></div></div><h2>翌日のRetentionへつなぎました</h2><p>正解した類題は復習予約に入り、期限が来ると「今日の学習」に表示されます。</p><div class="actions"><button onclick="render('home')">ホームへ</button><button class="secondary" onclick="render('exams')">次の過去問</button></div></section>`;
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">補強完了</span><h1>過去問からの弱点補強が完了</h1><p class="muted">元問題の解き直し、固定類題、初見問題での確認まで完了しました。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="done"><b>2</b><span>元問題を直す</span></div><div class="done"><b>3</b><span>固定類題</span></div><div class="done"><b>4</b><span>初見・翌日</span></div></div><h2>翌日の定着確認へつなぎました</h2><p>正解した類題は復習予約に入り、期限が来ると「今日の学習」に表示されます。</p><div class="actions"><button onclick="render('home')">ホームへ</button><button class="secondary" onclick="render('exams')">次の過去問</button></div></section>`;
 }
 function weaknessFlowSessions(skill){
   return Object.values(AppStorage.get().sessions).filter(s=>s?.flow?.type==="weakness-set"&&s.flow.skill===skill)
@@ -414,7 +414,7 @@ function routeSnapshot(){
 function resumeLabel(s){
   if(!s)return"";
   if(s.flow?.sourceSessionId)return`${examById(s.flow.sourceExamId)?.label||"過去問"}の弱点補強 ${Math.min((s.flow.index||0)+1,s.flow.problemIds.length)}/${s.flow.problemIds.length}`;
-  if(s.mode==="diagnostic")return"Core Diagnosticの続き";
+  if(s.mode==="diagnostic")return"FY25A診断の続き";
   if(Array.isArray(s.problemIds))return`${examById(s.examId)?.label||"過去問"} ${Math.min((s.index||0)+1,s.problemIds.length)}/${s.problemIds.length}から再開`;
   const q=qById(s.problemId);return`${q?.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(q):(q?.examId||"問題")} ${q?.label||""}の続き`;
 }
@@ -446,11 +446,22 @@ function canonicalTodayDecision(){
   candidates.push({lane:"practice",value:today});
   return {decision:CanonicalTodayPlanner.chooseCanonicalTodayTask(candidates),anyResumable,pendingSource,today,pastPaper};
 }
+function canonicalTodayQueue(limit=10){
+  const st=AppStorage.get(),anyResumable=preferredActiveSession(),pendingSource=pendingReinforcementSource(),pastPaper=nextPastPaperTask(),candidates=[];
+  if(anyResumable)candidates.push({lane:isRouteSession(anyResumable)||!pastPaper?"route-resume":"optional-resume",value:{id:`resume:${anyResumable.sessionId}`,title:"中断した学習を続ける",detail:resumeLabel(anyResumable),action:"resumeActiveSession()",button:"途中から再開"}});
+  if(pendingSource&&!anyResumable?.flow?.sourceSessionId)candidates.push({lane:"reinforcement",value:{id:`reinforce:${pendingSource.sessionId}`,title:"過去問の誤答を直して類題で補強",detail:`${examById(pendingSource.examId)?.label||pendingSource.examId}・誤答 ${sourceWrongResults(pendingSource).length}問`,action:`startReinforcement('${pendingSource.sessionId}')`,button:"補強を始める"}});
+  const due=st.reviewItems.filter(item=>item.status==="pending"&&Date.parse(item.dueAt)<=Date.now()).sort((a,b)=>Date.parse(a.dueAt)-Date.parse(b.dueAt));
+  for(const item of due){const q=qById(item.problemId);if(!q)continue;candidates.push({lane:"due-review",priority:-Date.parse(item.dueAt),value:{id:`review:${item.reviewItemId}`,title:"期限が来た問題を復習",detail:q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(q):`${q.examId} ${q.label}`,action:`openPractice('${h(q.id)}','retention','${h(item.reviewItemId)}')`,button:"復習する"}});}
+  if(pastPaper)candidates.push({lane:"past-paper",value:{id:`paper:${pastPaper.examId}`,title:pastPaper.isDiagnostic?"まず過去問一式で現在地を確認":"次の過去問一式に挑戦",detail:`${pastPaper.exam.label}・全${pastPaper.count}問`,action:`startPastPaperTask('${pastPaper.examId}')`,button:"過去問を始める"}});
+  const ordinary=chooseToday();
+  if(!ordinary.reviewItemId&&!pastPaper&&!pendingSource)candidates.push({lane:"practice",value:{id:`practice:${ordinary.q.id}`,title:ordinary.reason,detail:ordinary.q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(ordinary.q):`${ordinary.q.examId} ${ordinary.q.label}`,action:`openPractice('${h(ordinary.q.id)}','${h(ordinary.mode)}','')`,button:"今これをやる"}});
+  return CanonicalTodayPlanner.orderCanonicalTodayCandidates(candidates).slice(0,limit).map(item=>item.value);
+}
 function setHomeTarget(id){AppStorage.setTarget(id);render("home");}
 function renderHome(){
   const st=AppStorage.get(),target=st.settings.target||"stable",a=attempts(),graded=a.filter(x=>x.correct===true||x.correct===false),correct=graded.filter(x=>x.correct===true).length,stats=skillStats();
   const pending=st.reviewItems.filter(x=>x.status==="pending"),due=pending.filter(x=>Date.parse(x.dueAt)<=Date.now()).length;
-  const {decision,anyResumable,today}=canonicalTodayDecision(),lane=decision.lane,selected=decision.value,resumable=lane==="route-resume"?selected:null,pendingSource=lane==="reinforcement"?selected:null,dueToday=lane==="due-review"?selected:null,pastPaper=lane==="past-paper"?selected:null,deferredResumable=anyResumable&&selected!==anyResumable?anyResumable:null,route=routeSnapshot(),weak=stats.filter(s=>s.state==="weak").sort((x,y)=>x.acc-y.acc).slice(0,3);
+  const {decision,anyResumable,today}=canonicalTodayDecision(),lane=decision.lane,selected=decision.value,resumable=lane==="route-resume"?selected:null,pendingSource=lane==="reinforcement"?selected:null,dueToday=lane==="due-review"?selected:null,pastPaper=lane==="past-paper"?selected:null,deferredResumable=anyResumable&&selected!==anyResumable?anyResumable:null,todayQueue=canonicalTodayQueue(),route=routeSnapshot(),weak=stats.filter(s=>s.state==="weak").sort((x,y)=>x.acc-y.acc).slice(0,3);
   const todaySource=resumable?resumeLabel(resumable):pendingSource?`${examById(pendingSource.examId)?.label||pendingSource.examId}・誤答 ${sourceWrongResults(pendingSource).length}問`:dueToday?(dueToday.q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(dueToday.q):`${dueToday.q.examId} ${dueToday.q.label}`):pastPaper?`${pastPaper.exam.label}・全${pastPaper.count}問`:today.q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(today.q):`${today.q.examId} ${today.q.label}`;
   const todayReason=resumable?"中断した学習を続ける":pendingSource?"過去問の誤答を直して類題で補強":dueToday?dueToday.reason:pastPaper?(pastPaper.isDiagnostic?"まず過去問一式で現在地を確認":"次の過去問一式に挑戦"):today.reason;
   const todayAction=resumable?"resumeActiveSession()":pendingSource?`startReinforcement('${pendingSource.sessionId}')`:dueToday?"render('today')":pastPaper?`startPastPaperTask('${pastPaper.examId}')`:"render('today')";
@@ -464,7 +475,7 @@ function renderHome(){
     <div class="target-row"><span>目標を変更</span>${PROFILE.targets.map(t=>`<button class="target-chip ${target===t.id?"selected":""}" onclick="setHomeTarget('${t.id}')">${h(t.label)}</button>`).join("")}</div>
     <div class="goal-eta">${goalEstimates.map(goal=>`<article class="${target===goal.id?"selected":""}"><div><b>${h(goal.label)}</b><small>残り ${goal.remaining}問｜1日10問ペース</small></div><strong>${goal.remaining?`あと${goal.days}日`:"本線完了"}</strong></article>`).join("")}</div>
     <p class="goal-eta-note">過去問本線の未完了問を表示しています。公式得点には換算しません。</p>
-    <div class="today-list"><article><span>1</span><div><b>${h(todayReason)}</b><small>${h(todaySource)}${(!resumable&&!pendingSource&&!dueToday&&!pastPaper)?"・"+h(skillLabel(today.q.primarySkill)):""}</small></div><button class="primary" onclick="${todayAction}">${h(todayButton)}</button></article></div>
+    <div class="today-list">${todayQueue.map((task,index)=>`<article><span>${index+1}</span><div><b>${h(task.title)}</b><small>${h(task.detail)}</small></div><button class="${index===0?"primary":"secondary"}" onclick="${task.action}">${h(index===0?task.button:"開く")}</button></article>`).join("")}</div>
     <div class="today-more"><span>まず今日の必須課題を終えます。追加演習は完了後に表示します。</span></div>
   </section>
   ${deferredResumable?`<section class="card resume-card"><div><span class="eyebrow">SAVED · OPTIONAL</span><h2>以前の単問学習も保存されています</h2><p class="muted">${h(resumeLabel(deferredResumable))}</p></div><button class="secondary" onclick="resumeActiveSession()">以前の学習を再開</button></section>`:""}
@@ -475,11 +486,11 @@ function renderHome(){
   </section>
   <section class="card current-status"><div class="section-head"><div><span class="eyebrow">CURRENT STATUS</span><h2>現在の到達状況</h2></div><b>${finished?`${finishedCorrect}/${finished.results.length}`:"未診断"}</b></div><p>${finished?`${h(examById(finished.examId)?.label||finished.examId)}の結果から、誤答の元問題と固定類題を優先します。`:"まずFY25Aを一式解き、小問別に現在地を確認します。"}</p><p class="muted">最低ライン・安定圏・安全圏は学習優先度です。目標を変えても、正誤・解説・類題履歴は消えません。</p></section>
   <section class="card"><div class="section-head"><div><span class="eyebrow">WEAKNESS → ACTION</span><h2>いま直す弱点</h2></div><button class="secondary" onclick="render('review')">復習一覧</button></div>
-    ${weak.length?`<div class="weak-action-grid">${weak.map(s=>`<article><div><b>${h(skillLabel(s.skill))}</b><small>正答率 ${Math.round(s.acc*100)}%・${s.n}回の履歴</small></div><button class="primary" onclick="openSkillPractice('${h(s.skill)}')">この弱点を直す</button></article>`).join("")}</div>`:`<div class="empty-state"><b>集計できる弱点はまだありません</b><p>まずCore Diagnosticまたは今日の課題から始めます。</p></div>`}
+    ${weak.length?`<div class="weak-action-grid">${weak.map(s=>`<article><div><b>${h(skillLabel(s.skill))}</b><small>正答率 ${Math.round(s.acc*100)}%・${s.n}回の履歴</small></div><button class="primary" onclick="openSkillPractice('${h(s.skill)}')">この弱点を直す</button></article>`).join("")}</div>`:`<div class="empty-state"><b>集計できる弱点はまだありません</b><p>まずFY25A診断または今日の課題から始めます。</p></div>`}
   </section>
   <section class="card learning-route compact-route"><div class="section-head"><div><span class="eyebrow">PAST PAPER CYCLE</span><h2>FY25A診断 → FY24A/B改善 → 類題・転移・定着 → FY25B → FY26B/A</h2></div><strong>${route.complete?"完了":`PHASE ${route.active+1}/8`}</strong></div>
     <div class="compact-phase-list">${route.items.map((p,i)=>`<article class="${p.done?"done":i===route.active?"active":i>route.active?"locked":""}"><span>${p.done?"✓":i+1}</span><div><b>${h(p.title)}</b><small>${p.done?"完了":i===route.active?"現在の推奨":"次の段階"}</small></div></article>`).join("")}</div>
-    <p class="small muted">FY26Bはlearner-unseen最終評価です。開始前は練習・Hint・解説に表示しません。FY26Aはその後のparallel-form確認です。</p>
+    <p class="small muted">FY26Bは学習者が事前に見ない最終評価です。開始前は練習・ヒント・解説に表示しません。FY26Aはその後に別日程で確認します。</p>
   </section>
   <section class="card authority-note"><strong>公式情報の扱い</strong><p>公式解答・公式小問配点はありません。原本、独立解答、数学的再検算、自動採点回帰と精査をAnswer Authorityとします。FY26A Q5(3)は自動確定採点から除外します。</p></section>
   <section class="card home-secondary"><div><h2>演習・学習履歴・データ</h2><p class="muted">過去問、弱点別練習、学習記録、バックアップへ移動できます。</p></div><div class="actions"><button onclick="render('library')">演習ライブラリ</button><button class="secondary" onclick="render('progress')">学習記録</button><button class="secondary" onclick="render('data')">データ管理</button></div></section>`;
@@ -521,7 +532,7 @@ function renderDiagnostic(){
   if(s.status==="finished")return renderSessionResult(s);
   const q=qById(s.problemIds[s.index]),items=sessionMajorItems(s),majors=[...new Set(s.problemIds.map(id=>qById(id)?.majorQuestion))],majorIndex=majors.indexOf(q.majorQuestion);items.forEach(item=>AppStorage.setExposure(problemIdOf(item.q),"seen"));
   const pct=Math.round((majorIndex+1)/majors.length*100),entered=sessionAnsweredCount(s),majorEntered=items.filter(item=>answerProvided(s.answers[problemIdOf(item.q)])).length;
-  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">STEP 過去問を解く</span><h1>FY25 数学A｜Core Diagnostic</h1></div><div><b>入力 <span data-total-entered>${entered}</span>/${s.problemIds.length}</b><button class="text-button" onclick="render('library')">演習一覧</button></div></div>
+  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">STEP 過去問を解く</span><h1>FY25 数学A｜現在地を確認</h1></div><div><b>入力 <span data-total-entered>${entered}</span>/${s.problemIds.length}</b><button class="text-button" onclick="render('library')">演習一覧</button></div></div>
     ${sessionNavigator(s,SID)}
     <div class="exam-workspace ${answerDockOpen?"answer-open":""}">
       <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">PROBLEM · EXAM MODE</span><h2>大問${h(q.majorQuestion)}</h2></div><b>${items.length}小問</b></div>
@@ -529,7 +540,7 @@ function renderDiagnostic(){
         <div class="progressbar"><div style="width:${pct}%"></div></div>${majorProblemBlock(items)}
       </section>
       <aside class="answer-dock card ${answerDockOpen?"open":"closed"}"><button class="answer-dock-toggle" onclick="toggleAnswerDock()" aria-expanded="${answerDockOpen}">解答欄 <b><span data-major-entered>${majorEntered}</span>/${items.length}</b><span class="answer-dock-state">${answerDockOpen?"閉じる":"開く"}</span></button><div class="answer-dock-body">
-        <p class="dock-note">診断中は難度・技能・Hint・正答・解説を表示しません。入力は自動保存されます。</p><div class="dock-scroll">${items.map(({q:item})=>{const id=problemIdOf(item);return `<div class="dock-question"><div class="dock-qhead"><b>${h(item.label)}</b><span>答えを入力</span></div>${qInput(item,s.answers[id]||{},id)}</div>`}).join("")}</div>
+        <p class="dock-note">診断中は難度・技能・ヒント・正答・解説を表示しません。入力は自動保存されます。</p><div class="dock-scroll">${items.map(({q:item})=>{const id=problemIdOf(item);return `<div class="dock-question"><div class="dock-qhead"><b>${h(item.label)}</b><span>答えを入力</span></div>${qInput(item,s.answers[id]||{},id)}</div>`}).join("")}</div>
         <div class="dock-keypad">${mathKeypad()}</div><div class="major-nav"><button class="secondary" ${majorIndex===0?"disabled":""} onclick="sessionMoveMajor('${SID}',-1)">← 前の大問</button><button onclick="sessionMoveMajor('${SID}',1)">${majorIndex===majors.length-1?"解答を終了して自動採点":"次の大問 →"}</button></div>
       </div></aside>
     </div>`;
@@ -565,13 +576,13 @@ function renderSessionResult(s){
   for(const x of s.results){const q=qById(x.problemId);bySkill[q.primarySkill]??={n:0,c:0};bySkill[q.primarySkill].n++;if(x.correct===true)bySkill[q.primarySkill].c++;}
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">SESSION RESULT</span><h1>${s.mode==="diagnostic"?"診断":"セッション"}結果</h1></div></div><section class="grid three"><div class="card stat"><strong>${c}/${n}</strong><span>独立正答候補との一致</span></div><div class="card stat"><strong>${wrong.length}</strong><span>これから直す問題</span></div><div class="card stat"><strong>${r}</strong><span>要確認</span></div></section><section class="card result-wrong-first">
     <span class="eyebrow">PAST PAPER → PRACTICE</span><h2>${wrong.length?"間違えた問題を直して、対応類題へ進む":"この過去問の必須補強はありません"}</h2>
-    <div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${wrong.length?"current":"done"}"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div>
+    <div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${wrong.length?"current":"done"}"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>固定類題</span></div><div><b>4</b><span>初見・翌日</span></div></div>
     ${wrong.length?`<p>誤答 ${wrong.length}問を元問題から解き直し、同じ技能の基礎・入試レベル類題 ${l12Count}問${transferCount?`、初見応用 ${transferCount}問`:""}へ自動でつなぎます。</p><div class="source-review-list">${wrong.map(x=>{const q=qById(x.problemId),mapped=preview.mappingBySourceProblemId[x.problemId]?.practiceProblemIds||[];return `<article><div><b>${h(q.examId)} ${h(q.label)}</b><small>${h(skillLabel(q.primarySkill))}</small></div><span>${mapped.length?`対応類題 ${mapped.length}問`:`元問題の解き直しのみ`}</span></article>`}).join("")}</div><div class="actions"><button onclick="startReinforcement('${s.sessionId}')">${existingFlow?.status==="active"?"弱点補強を続ける":"誤答の解き直し・類題を始める"}</button></div>`:`<div class="actions"><button onclick="render('exams')">次の過去問へ</button></div>`}
     ${preview.unmappedSourceProblemIds.length?`<p class="small warn">${preview.unmappedSourceProblemIds.map(id=>h(qById(id)?.label||id)).join("、")} は、対応する固定類題が監査済みデータにないため、推測で割り当てず元問題の解き直しだけを行います。</p>`:""}
   </section><section class="card">
-    <p class="muted">公式配点がないため公式得点には換算しません。${s.cleanEligible===false?" この実施はlearner-unseen評価ではありません。":""}</p>
+    <p class="muted">公式配点がないため公式得点には換算しません。${s.cleanEligible===false?" この実施は初見評価ではありません。":""}</p>
   </section><section class="card"><h2>分野別</h2><div class="table-wrap"><table><tr><th>分野</th><th>一致</th></tr>
-    ${Object.entries(bySkill).map(([k,v])=>`<tr><td>${h(k)}</td><td>${v.c}/${v.n}</td></tr>`).join("")}</table>
+    ${Object.entries(bySkill).map(([k,v])=>`<tr><td>${h(skillLabel(k))}</td><td>${v.c}/${v.n}</td></tr>`).join("")}</table>
     </div><div class="actions"><button onclick="render('today')">次の学習へ</button><button class="secondary" onclick="render('exams')">過去問一覧</button></div></section>`;
 }
 
@@ -603,30 +614,30 @@ function chooseToday(){
   if(wrong){
     const baseq=qById(wrong.problemId);
     const c=BANK.find(q=>q.practiceLevel==="L2"&&q.primarySkill===baseq?.primarySkill&&AppStorage.exposureStatus(q.id)==="unseen");
-    if(c)return {q:c,mode:"learning",reason:"診断誤答→Level 2"};
+    if(c)return {q:c,mode:"learning",reason:"診断で間違えた分野を入試レベルで補強"};
     if(baseq)return {q:baseq,mode:"learning",reason:"診断誤答"};
   }
   const unseen=QUESTIONS.filter(q=>q.role==="training"&&AppStorage.exposureStatus(q.id)==="unseen")
     .sort((a,b)=>targetRank(targetFor(b))-targetRank(targetFor(a)));
   if(unseen[0])return {q:unseen[0],mode:"learning",reason:`${targetLabel(target)}に必要な未学習`};
   const bankUnseen=BANK.find(q=>q.practiceLevel==="L2"&&AppStorage.exposureStatus(q.id)==="unseen");
-  if(bankUnseen)return {q:bankUnseen,mode:"learning",reason:"Level 2補強"};
+  if(bankUnseen)return {q:bankUnseen,mode:"learning",reason:"入試レベルの固定類題で補強"};
   return {q:ALL_ITEMS[Math.floor(Math.random()*ALL_ITEMS.length)],mode:"learning",reason:"Mixed練習"};
 }
 function renderToday(){
   const {decision,today}=canonicalTodayDecision(),lane=decision.lane,selected=decision.value,resumable=lane==="route-resume"?selected:null;
   if(resumable)return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · RESUME</span><h1>中断した学習を続ける</h1><p class="muted">保存した位置から、そのまま再開できます。</p></div></div><section class="card"><h2>${h(resumeLabel(resumable))}</h2><div class="actions"><button onclick="resumeActiveSession()">途中から再開</button></div></section>`;
   const pendingSource=lane==="reinforcement"?selected:null;
-  if(pendingSource){const existing=reinforcementForSource(pendingSource.sessionId);return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FOLLOW-UP</span><h1>過去問の弱点を補強</h1><p class="muted">次の過去問へ進む前に、誤答を元問題→固定類題の順で直します。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="current"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div><h2>${h(examById(pendingSource.examId)?.label||pendingSource.examId)}の補強</h2><p>誤答 ${sourceWrongResults(pendingSource).length}問。途中で閉じてもホームのResumeから続けられます。</p><div class="actions"><button onclick="startReinforcement('${pendingSource.sessionId}')">${existing?.status==="active"?"続きから再開":"補強を始める"}</button></div></section>`;}
+  if(pendingSource){const existing=reinforcementForSource(pendingSource.sessionId);return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FOLLOW-UP</span><h1>過去問の弱点を補強</h1><p class="muted">次の過去問へ進む前に、誤答を元問題→固定類題の順で直します。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="current"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>固定類題</span></div><div><b>4</b><span>初見・翌日</span></div></div><h2>${h(examById(pendingSource.examId)?.label||pendingSource.examId)}の補強</h2><p>誤答 ${sourceWrongResults(pendingSource).length}問。途中で閉じてもホームの「続きから再開」から戻れます。</p><div class="actions"><button onclick="startReinforcement('${pendingSource.sessionId}')">${existing?.status==="active"?"続きから再開":"補強を始める"}</button></div></section>`;}
   const pastPaper=lane==="past-paper"?selected:null;
-  if(pastPaper)return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FIRST</span><h1>まず過去問から始める</h1><p class="muted">過去問を一式解き、結果に応じて誤答の解き直しと対応類題へ進みます。</p></div></div><section class="card today-hero"><div class="workflow-strip"><div class="current"><b>1</b><span>過去問</span></div><div><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div><div class="today-head"><div><span class="eyebrow">NEXT PAST PAPER</span><h2>${h(pastPaper.exam.label)}</h2><p>${pastPaper.isDiagnostic?"Core Diagnosticとして現在地を確認します。":"前の補強を終えたので、次の過去問へ進みます。"}</p></div><div class="goal-block"><span>問題数</span><strong>${pastPaper.count}問</strong><small>一式で実施</small></div></div><div class="actions"><button onclick="startPastPaperTask('${pastPaper.examId}')">過去問を始める</button><button class="secondary" onclick="render('exams')">過去問一覧</button></div></section>`;
+  if(pastPaper)return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FIRST</span><h1>まず過去問から始める</h1><p class="muted">過去問を一式解き、結果に応じて誤答の解き直しと対応類題へ進みます。</p></div></div><section class="card today-hero"><div class="workflow-strip"><div class="current"><b>1</b><span>過去問</span></div><div><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>固定類題</span></div><div><b>4</b><span>初見・翌日</span></div></div><div class="today-head"><div><span class="eyebrow">次の過去問</span><h2>${h(pastPaper.exam.label)}</h2><p>${pastPaper.isDiagnostic?"現在地を確認する診断として一式解きます。":"前の補強を終えたので、次の過去問へ進みます。"}</p></div><div class="goal-block"><span>問題数</span><strong>${pastPaper.count}問</strong><small>一式で実施</small></div></div><div class="actions"><button onclick="startPastPaperTask('${pastPaper.examId}')">過去問を始める</button><button class="secondary" onclick="render('exams')">過去問一覧</button></div></section>`;
   const p=lane==="due-review"||lane==="practice"?selected:today,mins=p.q.estimatedMinutesRange||[.5,1.5];
   const target=AppStorage.get().settings.target||"stable",source=p.q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(p.q):`${p.q.examId} / ${p.q.label}`;
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY</span><h1>今日の学習</h1><p class="muted">学習履歴から、いま一番効果の高い課題を1つ選んでいます。</p></div><span class="route-status">${h(targetLabel(target))}</span></div>
     <section class="card today-hero"><div class="today-head"><div><span class="eyebrow">NEXT TASK</span><h2>${h(p.reason)}</h2><p>${h(source)}</p></div><div class="goal-block"><span>目安時間</span><strong>${mins[0]}–${mins[1]}分</strong><small>解答中だけ計測</small></div></div>
     <div class="meta-row"><span class="badge">${h(skillLabel(p.q.primarySkill))}</span><span class="badge">${h(targetRelevanceLabel(targetFor(p.q)))}</span><span class="badge">${h(modeLabel(p.mode))}</span></div>
     <div class="actions"><button onclick="openPractice('${p.q.id}','${p.mode}','${p.reviewItemId||""}')">この課題を始める</button><button class="secondary" onclick="render('review')">復習一覧</button></div></section>
-    <section class="card"><h2>今日の進め方</h2><div class="compact-phase-list"><article class="active"><span>1</span><div><b>1問に集中</b><small>まず自力で解答</small></div></article><article><span>2</span><div><b>必要ならHint</b><small>H1 → H2 → 解説</small></div></article><article><span>3</span><div><b>誤答を復習予約</b><small>履歴へ自動保存</small></div></article><article><span>4</span><div><b>翌日に定着確認</b><small>Retentionへ接続</small></div></article></div></section>`;
+    <section class="card"><h2>今日の進め方</h2><div class="compact-phase-list"><article class="active"><span>1</span><div><b>1問に集中</b><small>まず自力で解答</small></div></article><article><span>2</span><div><b>必要ならヒント</b><small>着眼点 → 進め方 → 解説</small></div></article><article><span>3</span><div><b>誤答を復習予約</b><small>履歴へ自動保存</small></div></article><article><span>4</span><div><b>翌日に定着確認</b><small>翌日の課題へ接続</small></div></article></div></section>`;
 }
 function renderReview(){
   const pending=AppStorage.get().reviewItems.filter(r=>r.status==="pending").sort((a,b)=>Date.parse(a.dueAt)-Date.parse(b.dueAt));
@@ -641,7 +652,7 @@ function renderPractice(){
   const topics=weaknessTopics(),limit=PROFILE.practicePolicy?.weaknessDisplayLimit||3,visible=topics.slice(0,limit),unresolved=topics.reduce((sum,item)=>sum+item.items.length,0),top=topics[0]?skillLabel(topics[0].skill):"--";
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">MISTAKE REVIEW</span><h1>弱点・固定類題</h1><p class="muted">過去問と学習履歴の未解決問題から、いま直す弱点を絞ります。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div>
   <section class="grid three"><article class="card stat"><b>${unresolved}</b><span>未解決設問</span></article><article class="card stat"><b>${topics.length}</b><span>いま直す弱点分野</span></article><article class="card stat"><b>${h(top)}</b><span>最多の弱点</span></article></section>
-  <section class="card"><h2>直す順番</h2><p class="muted">元問題の誤答を確認し、対応するL1/L2固定類題を開始時に固定して、未正解の問題だけ周回します。</p><div class="review-order"><div><b>1</b><span>元問題を確認</span><small>過去問の誤答から弱点を特定</small></div><div><b>2</b><span>固定類題セット</span><small>開始時に4問を固定</small></div><div><b>3</b><span>未正解だけ再挑戦</span><small>正解済みは維持して定着へ</small></div></div></section>
+  <section class="card"><h2>直す順番</h2><p class="muted">元問題の誤答を確認し、対応する基礎・入試レベルの固定類題を開始時に固定して、未正解の問題だけ周回します。</p><div class="review-order"><div><b>1</b><span>元問題を確認</span><small>過去問の誤答から弱点を特定</small></div><div><b>2</b><span>固定類題セット</span><small>開始時に4問を固定</small></div><div><b>3</b><span>未正解だけ再挑戦</span><small>正解済みは維持して定着へ</small></div></div></section>
   ${visible.length?`<section class="review-topics">${visible.map(({skill,items,stat},index)=>{const sessions=weaknessFlowSessions(skill),active=sessions.find(s=>s.status==="active"),latest=sessions[0],required=active?.flow?.problemIds?.length||latest?.flow?.problemIds?.length||PROFILE.practicePolicy?.weaknessSetSize||4,completed=active?.flow?.completedQuestionIds?.length||latest?.flow?.completedQuestionIds?.length||0,priority=index===0?"A":index===1?"B":"C",displaySkill=skillLabel(skill);return `<article class="card"><div class="section-head"><div><span class="eyebrow">補強優先度 ${priority}・${priority==="A"?"当日":priority==="B"?"翌日":"軽く確認"}</span><h3>${h(displaySkill)}</h3></div><b>${items.length}問</b></div><p><b>${h(displaySkill)}</b>の固定類題。開始したセットの完了状態を独立して管理します。</p><div class="progress-track"><i style="width:${required?Math.min(100,completed/required*100):0}%"></i></div><div class="actions"><button class="${active?"":"primary"}" onclick="startWeaknessSet('${h(skill)}')">${active?`固定類題を続ける ${completed}/${required}`:"固定類題セットで克服する"}</button></div><p class="muted">誤答しても必要問題数は増えません。正解済み問題は維持し、未正解問題だけを再挑戦します。</p>${stat?`<p class="small muted">学習履歴 ${stat.n}回・正答率 ${Math.round(stat.acc*100)}%</p>`:""}</article>`;}).join("")}</section>`:`<section class="card source-review-gate"><span class="eyebrow">過去問診断が必要です</span><h2>まず過去問を解いて弱点を見つけます</h2><p>全小問を採点すると、未解決問題と対応する固定類題セットをここに表示します。</p><div class="actions"><button onclick="render('exams')">過去問を解く</button><button class="secondary" onclick="render('home')">ホームへ戻る</button></div></section>`}
   <details class="card optional-practice"><summary><b>固定類題を分野・Levelから探す</b><span>任意練習</span></summary><p class="muted">本線は上の弱点別固定セットです。必要な場合だけ411問Bankを直接絞り込みます。</p><div class="filter-grid">
     <label>ソース<select id="pfExam">${examOptions}</select></label>
@@ -671,13 +682,52 @@ function openPractice(id,mode="learning",reviewItemId=""){
     retryCount:0,hintLevel:0,hintEvents:[],reviewItemId,exposureBefore:prior,status:"active"};
   AppStorage.setSession(s.sessionId,s);renderPracticeQuestion(q,s);
 }
+function sourceReviewSession(s){return s?.flow?.stageByProblemId?.[s.problemId]==="source-review";}
+function markSourceReviewHelp(sid,level){
+  const s=AppStorage.session(sid);if(!s)return;
+  s.hintLevel=Math.max(s.hintLevel||0,level);s.hintEvents=[...(s.hintEvents||[]),{level,at:new Date().toISOString()}];AppStorage.setSession(sid,s);
+}
+function renderSourceReviewChoice(q,s){
+  AppStorage.setExposure(q.id,"seen");
+  const title=`${q.examId} ${q.label}`,steps=Array.isArray(q.explanationSteps)?q.explanationSteps:[];
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">元問題を1問ずつ直す</span><h1>${h(title)}</h1><p class="muted">この1問だけに集中し、理解してから固定類題へ進みます。</p></div><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div>
+    <div class="one-question-banner"><b>今はこの1問だけ</b><span>ほかの問題の正答は表示しません。</span><em>${h(skillLabel(q.primarySkill))}</em></div>
+    <div class="guided-review-grid"><section class="card guided-problem"><div class="section-head"><div><span class="eyebrow">元問題</span><h2>${h(title)}</h2></div></div>${sourceBlock(q,true)}</section>
+    <section class="card guided-panel"><h2>この1問をどう直しますか？</h2><p class="muted">早稲田版と同じく、理解のしかたを選んでから最後に自力で再現します。</p><div class="guided-choice">
+      ${steps.length?`<button onclick="renderSourceReviewGuide('${s.sessionId}',0)">問題専用STEPで理解する</button>`:""}
+      <button class="secondary" onclick="renderSourceReviewRetry('${s.sessionId}')">もう一度自力で解く</button>
+      <button class="secondary" onclick="renderSourceReviewExplanation('${s.sessionId}')">この1問の答え・解説を見る</button>
+    </div></section></div>`;
+}
+function renderSourceReviewGuide(sid,index=0){
+  const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");
+  const steps=Array.isArray(q.explanationSteps)?q.explanationSteps:[];if(!steps.length)return renderSourceReviewExplanation(sid);
+  markSourceReviewHelp(sid,1);const step=Math.max(0,Math.min(steps.length-1,index));
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">問題専用STEP</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">段階解説は監査済みの既存内容をそのまま使っています。</p></div><button class="secondary" onclick="renderSourceReviewChoice(qById('${h(q.id)}'),AppStorage.session('${sid}'))">学び方を選び直す</button></div>
+    <div class="guided-review-grid"><section class="card guided-problem">${sourceBlock(q,true)}</section><section class="card guided-panel"><div class="guided-progress">${steps.map((_,i)=>`<button class="${i<=step?"active":""}" onclick="renderSourceReviewGuide('${sid}',${i})">${i+1}</button>`).join("")}</div>
+      <div class="guided-step"><span class="eyebrow">STEP ${step+1} / ${steps.length}</span><h2>${step===0?"着眼点を確認":"解き方をつなぐ"}</h2><p>${h(steps[step])}</p><textarea rows="4" placeholder="自分の途中式・考え方を記録（任意）"></textarea><p class="muted">途中式の記録欄は自己整理用です。内容を自動採点しません。</p><div class="actions">
+      ${step>0?`<button class="secondary" onclick="renderSourceReviewGuide('${sid}',${step-1})">前のSTEP</button>`:""}
+      ${step<steps.length-1?`<button onclick="renderSourceReviewGuide('${sid}',${step+1})">次のSTEPへ</button>`:`<button onclick="renderSourceReviewRetry('${sid}')">解説を閉じて自力再現へ</button>`}
+      <button class="secondary" onclick="renderSourceReviewExplanation('${sid}')">この1問の答えを見る</button></div></div></section></div>`;
+}
+function renderSourceReviewExplanation(sid){
+  const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");markSourceReviewHelp(sid,3);
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">この1問の答えと完全解説</span><h1>${h(q.examId)} ${h(q.label)}</h1></div><button class="secondary" onclick="finishPractice('${sid}',false)">中断して戻る</button></div><div class="guided-review-grid"><section class="card guided-problem">${sourceBlock(q,true)}</section><section class="card guided-panel"><div class="answer-reveal"><span>この小問の解答候補</span><strong>${h(answerDisplay(q))}</strong></div>${explanationHtml(q)}<p class="muted">答えを見たこと自体は習得扱いになりません。閉じて自力で再現してください。</p><div class="actions"><button onclick="renderSourceReviewRetry('${sid}')">答えを閉じて自力再現</button><button class="secondary" onclick="renderSourceReviewGuide('${sid}',0)">STEPを確認する</button></div></section></div>`;
+}
+function renderSourceReviewRetry(sid){
+  const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");AppStorage.setExposure(q.id,"seen");
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">自力再現</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">STEP・解説を閉じました。最初から自力で解いて採点します。</p></div><button class="secondary" onclick="finishPractice('${sid}',false)">中断して戻る</button></div><article class="card practice-card wase-practice"><div class="qtop"><div><span class="eyebrow">元問題の解き直し</span><h2>${h(skillLabel(q.primarySkill))}</h2></div><span class="progress-pill">${Math.min((s.flow?.index||0)+1,s.flow?.problemIds?.length||1)} / ${s.flow?.problemIds?.length||1}</span></div>${sourceBlock(q,true)}<div class="practice-answer"><h3>解答</h3>${qInput(q,s.answerDraft||{})}<div class="math-keypad-wrap">${mathKeypad()}</div><div id="feedback"></div><div class="actions practice-actions"><button id="submitPractice">この1問を採点する</button><button class="secondary" onclick="renderSourceReviewGuide('${sid}',0)">問題専用STEP</button><button class="secondary" onclick="renderSourceReviewExplanation('${sid}')">答え・解説</button></div></div></article>`;
+  activeTimer=createActiveTimer(s.activeMs||0);activeTimerCommit=ms=>{const c=AppStorage.session(sid);if(c){c.activeMs=ms;AppStorage.setSession(sid,c);}};mountFloatingTimer();
+  bindDraftSaver(q,ans=>{const c=AppStorage.session(sid);if(c){c.answerDraft=ans;c.activeMs=activeTimer?activeTimer.ms():c.activeMs;AppStorage.setSession(sid,c);}});bindMathKeypad();document.getElementById("submitPractice").onclick=()=>submitPractice(sid,q);
+}
 function renderPracticeQuestion(q,s){
   if(s.flow?.type==="weakness-set")return renderWeaknessSetQuestion(q,s);
+  if(sourceReviewSession(s))return renderSourceReviewChoice(q,s);
   AppStorage.setExposure(q.id,"seen");
   const flow=s.flow,flowIndex=flow?.index||0;
   const title=q.sourceType==="FIXED_PRACTICE"?h(fixedPracticeTitle(q)):h(q.examId+" "+q.label);
   app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">${flow?"PAST PAPER → FIXED PRACTICE":"GUIDED PRACTICE"}</span><h1>${flow?h(reinforcementStageLabel(s)):"問題を解く"}</h1></div><div>${flow?`<b>${flowIndex+1}/${flow.problemIds.length}</b>`:""}<button class="text-button" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div></div>
-    ${flow?`<section class="card reinforcement-progress"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${reinforcementStageLabel(s).includes("元問題")?"current":flowIndex>0?"done":""}"><b>2</b><span>元問題を直す</span></div><div class="${["l1","l2"].includes(flow.stageByProblemId[s.problemId])?"current":flow.stageByProblemId[s.problemId]==="transfer"?"done":""}"><b>3</b><span>L1/L2類題</span></div><div class="${flow.stageByProblemId[s.problemId]==="transfer"?"current":""}"><b>4</b><span>転移・定着</span></div></div><div class="question-progress"><strong>${h(reinforcementStageLabel(s))}</strong><span>${flowIndex+1} / ${flow.problemIds.length}</span></div><div class="progressbar"><div style="width:${Math.round((flowIndex+1)/flow.problemIds.length*100)}%"></div></div></section>`:""}
+    ${flow?`<section class="card reinforcement-progress"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="${reinforcementStageLabel(s).includes("元問題")?"current":flowIndex>0?"done":""}"><b>2</b><span>元問題を直す</span></div><div class="${["l1","l2"].includes(flow.stageByProblemId[s.problemId])?"current":flow.stageByProblemId[s.problemId]==="transfer"?"done":""}"><b>3</b><span>固定類題</span></div><div class="${flow.stageByProblemId[s.problemId]==="transfer"?"current":""}"><b>4</b><span>初見・翌日</span></div></div><div class="question-progress"><strong>${h(reinforcementStageLabel(s))}</strong><span>${flowIndex+1} / ${flow.problemIds.length}</span></div><div class="progressbar"><div style="width:${Math.round((flowIndex+1)/flow.problemIds.length*100)}%"></div></div></section>`:""}
     <div class="exam-workspace study-workspace ${answerDockOpen?"answer-open":""}">
       <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">問題</span><h2>${title}</h2></div>${flow?`<b>${h(reinforcementStageLabel(s))}</b>`:""}</div><div class="meta-row"><span class="badge">${h(modeLabel(s.mode))}</span><span class="badge ${q.difficulty.toLowerCase()}">${h(difficultyLabel(q.difficulty))}</span><span class="badge">${h(skillLabel(q.primarySkill))}</span><span class="badge">${h(targetRelevanceLabel(targetFor(q)))}</span></div>${sourceBlock(q,true)}</section>
       <aside class="answer-dock card ${answerDockOpen?"open":"closed"}"><button class="answer-dock-toggle" onclick="toggleAnswerDock()" aria-expanded="${answerDockOpen}">解答欄 ${answerProvided(s.answerDraft)?"1/1":"0/1"}<span class="answer-dock-state">${answerDockOpen?"閉じる":"開く"}</span></button><div class="answer-dock-body">
@@ -697,7 +747,7 @@ function renderWeaknessSetQuestion(q,s){
   const completed=new Set(s.flow.completedQuestionIds||[]),required=s.flow.problemIds.length,done=completed.size,title=h(fixedPracticeTitle(q));
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">弱点の固定類題</span><h1>${h(skillLabel(s.flow.skill))}</h1><p class="muted">開始時に固定した${required}問を、未正解の問題だけ周回します。</p></div><div class="streak-badge">完了 ${done}/${required}</div></div><div class="progress-track"><i style="width:${required?done/required*100:0}%"></i></div>
     <article class="card practice-card wase-practice"><div class="qtop"><div><span class="eyebrow">${h(practiceLevelLabel(q.practiceLevel))}</span><h2>${title}</h2></div><span class="progress-pill">完了 ${done}/${required}</span></div>${sourceBlock(q,true)}<div class="practice-answer"><h3>解答</h3>${qInput(q,s.answerDraft||{})}<div class="math-keypad-wrap">${mathKeypad()}</div><div id="feedback"></div><div class="actions practice-actions"><button id="submitPractice">採点する</button><button class="secondary" id="hint1Btn">ヒント</button><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断</button></div></div></article>
-    <section class="card"><h2>${required}問完了のルール</h2><p>開始時に固定した${required}問すべてに自力で正解すると「いったん克服」です。誤答があっても正解済み問題は維持し、未正解問題だけを周回します。</p><p class="muted">このセットは同型練習の確認用です。転移はClean Transferと次の未見過去問で別に確認します。</p></section>`;
+    <section class="card"><h2>${required}問完了のルール</h2><p>開始時に固定した${required}問すべてに自力で正解すると「いったん克服」です。誤答があっても正解済み問題は維持し、未正解問題だけを周回します。</p><p class="muted">このセットは同型練習の確認用です。応用できるかは、次の初見問題と未見過去問で別に確認します。</p></section>`;
   activeTimer=createActiveTimer(s.activeMs||0);activeTimerCommit=ms=>{const c=AppStorage.session(s.sessionId);if(c){c.activeMs=ms;AppStorage.setSession(s.sessionId,c);}};mountFloatingTimer();
   bindDraftSaver(q,ans=>{const c=AppStorage.session(s.sessionId);if(c){c.answerDraft=ans;c.activeMs=activeTimer?activeTimer.ms():c.activeMs;AppStorage.setSession(s.sessionId,c);}});bindMathKeypad();
   document.getElementById("hint1Btn").onclick=()=>showHint(s.sessionId,q,1);document.getElementById("submitPractice").onclick=()=>submitPractice(s.sessionId,q);
@@ -732,7 +782,7 @@ function submitPractice(sid,q){
     if(s.flow?.type==="weakness-set")s.flow.completedQuestionIds=[...new Set([...(s.flow.completedQuestionIds||[]),problemIdOf(q)])];
     s.problemCompleted=true;s.status=s.flow?.problemIds?"active":"finished";AppStorage.setSession(sid,s);
     f.className="ok";f.innerHTML=`正解。${explanationHtml(q)}<div class="actions"><button onclick="finishPractice('${sid}',true)">次のおすすめ</button><button class="secondary" onclick="finishPractice('${sid}',false)">終了</button></div>`;
-    document.getElementById("submitPractice").disabled=true;document.getElementById("hint1Btn").disabled=true;return;
+    document.getElementById("submitPractice").disabled=true;const hintButton=document.getElementById("hint1Btn");if(hintButton)hintButton.disabled=true;return;
   }
   AppStorage.scheduleReview(q.id,q.primarySkill,false);s.retryCount++;s.activeMs=0;s.startedAt=now;AppStorage.setSession(sid,s);
   f.className="ng";f.innerHTML=(s.retryCount===1?"不正解。答えはまだ表示しません。条件・符号・図を見直してください。":"まだ一致しません。H1/H2を使うか、もう一度自力で修正できます。")+(s.flow?.type==="weakness-set"?`<div class="actions"><button class="secondary" onclick="finishPractice('${sid}',true)">次の問題へ</button></div>`:"");
@@ -755,13 +805,13 @@ function finishPractice(sid,next){
 // ---------- Past exams / exam mode ----------
 function renderExams(){
   const confirmationUnlocked=examExposure("R26-MATH-B")==="practiced";
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">PAST PAPERS</span><h1>過去問</h1><p class="muted">A/BをexamId別に管理し、learner-unseen評価の未見性を保護します。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div><section class="card"><div class="notice">公式制限時間・小問配点は提供資料から確認できていないため、Exam Modeは経過時間のみ記録します。</div>
-    ${EXAMS.map(e=>{const exposure=examExposure(e.examId),mate=parallelMateExposed(e),locked=e.role==="confirmation"&&!confirmationUnlocked;return `<div class="card exam-card"><div><strong>${h(e.label)}</strong><p>${h(e.roleLabel)} / ${e.questionCount}問 / exposure=${h(exposure)}${mate?" / parallel mate既見":""}</p>${e.role==="evaluation"?'<p class="small warn">learner-unseen評価：開始前は練習・Hint・解説に露出しません。</p>':''}${locked?'<p class="small muted">FY26B評価後に開放します。</p>':''}</div><div class="actions">${e.role==="diagnostic"?`<button onclick="render('diagnostic')">診断</button>`:`<button ${locked?'disabled':''} onclick="startExam('${e.examId}')">本番形式</button>`}${["evaluation","confirmation"].includes(e.role)?'':`<button class="secondary" onclick="practiceExam('${e.examId}')">学習</button>`}</div></div>`}).join("")}</section>`;
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">PAST PAPERS</span><h1>過去問</h1><p class="muted">A/Bを別試験として管理し、最終評価の未見性を保護します。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div><section class="card"><div class="notice">公式制限時間・小問配点は提供資料から確認できていないため、経過時間だけを記録します。</div>
+    ${EXAMS.map(e=>{const exposure=examExposure(e.examId),mate=parallelMateExposed(e),locked=e.role==="confirmation"&&!confirmationUnlocked;return `<div class="card exam-card"><div><strong>${h(e.label)}</strong><p>${h(e.roleLabel)}・${e.questionCount}問・${h(exposureLabel(exposure))}${mate?"・別日程の問題を確認済み":""}</p>${e.role==="evaluation"?'<p class="small warn">最終・未見評価：開始前は練習・ヒント・解説に表示しません。</p>':''}${locked?'<p class="small muted">FY26B評価後に開放します。</p>':''}</div><div class="actions">${e.role==="diagnostic"?`<button onclick="render('diagnostic')">診断</button>`:`<button ${locked?'disabled':''} onclick="startExam('${e.examId}')">本番形式</button>`}${["evaluation","confirmation"].includes(e.role)?'':`<button class="secondary" onclick="practiceExam('${e.examId}')">学習</button>`}</div></div>`}).join("")}</section>`;
 }
 function practiceExam(examId){render("practice");document.getElementById("pfExam").value=examId;renderPracticeList();}
 function startExam(examId){
   const e=examById(examId);if(e.role==="confirmation"&&examExposure("R26-MATH-B")!=="practiced")return;
-  if(e.role==="evaluation"&&examExposure(examId)==="unseen"&&!confirm("FY26Bは最終learner-unseen評価です。開始すると問題が既見になります。開始しますか？"))return;
+  if(e.role==="evaluation"&&examExposure(examId)==="unseen"&&!confirm("FY26Bは最終・未見評価です。開始すると問題を確認済みとして記録します。開始しますか？"))return;
   const ids=examQuestions(examId).map(problemIdOf),before=Object.fromEntries(ids.map(id=>[id,AppStorage.exposureStatus(id)]));
   const transfer=Object.fromEntries(ids.map(id=>[id,cleanTransferEligible(qById(id))]));
   let mode=e.role==="transfer"?"transfer":e.role==="evaluation"?"evaluation":e.role==="confirmation"?"confirmation":"exam";
@@ -778,10 +828,10 @@ function renderExamSession(sid){
     ${sessionNavigator(s,sid)}
     <div class="exam-workspace ${answerDockOpen?"answer-open":""}">
       <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">PROBLEM · EXAM MODE</span><h2>大問${h(q.majorQuestion)}</h2></div><b>${items.length}小問</b></div>
-        ${s.cleanEligible?"":'<div class="warn">この実施はlearner-unseenのClean評価ではありません。</div>'}<div class="progressbar"><div style="width:${pct}%"></div></div>${majorProblemBlock(items)}
+        ${s.cleanEligible?"":'<div class="warn">この実施は初見評価ではありません。</div>'}<div class="progressbar"><div style="width:${pct}%"></div></div>${majorProblemBlock(items)}
       </section>
       <aside class="answer-dock card ${answerDockOpen?"open":"closed"}"><button class="answer-dock-toggle" onclick="toggleAnswerDock()" aria-expanded="${answerDockOpen}">解答欄 <b><span data-major-entered>${majorEntered}</span>/${items.length}</b><span class="answer-dock-state">${answerDockOpen?"閉じる":"開く"}</span></button><div class="answer-dock-body">
-        <p class="dock-note">提出前は難度・技能・Hint・正答・解説を表示しません。入力は自動保存されます。</p><div class="dock-scroll">${items.map(({q:item})=>{const id=problemIdOf(item);return `<div class="dock-question"><div class="dock-qhead"><b>${h(item.label)}</b><span>答えを入力</span></div>${qInput(item,s.answers[id]||{},id)}</div>`}).join("")}</div>
+        <p class="dock-note">提出前は難度・技能・ヒント・正答・解説を表示しません。入力は自動保存されます。</p><div class="dock-scroll">${items.map(({q:item})=>{const id=problemIdOf(item);return `<div class="dock-question"><div class="dock-qhead"><b>${h(item.label)}</b><span>答えを入力</span></div>${qInput(item,s.answers[id]||{},id)}</div>`}).join("")}</div>
         <div class="dock-keypad">${mathKeypad()}</div><div class="major-nav"><button class="secondary" ${majorIndex===0?"disabled":""} onclick="sessionMoveMajor('${sid}',-1)">← 前の大問</button><button onclick="sessionMoveMajor('${sid}',1)">${majorIndex===majors.length-1?"解答を終了して自動採点":"次の大問 →"}</button></div>
       </div></aside>
     </div>`;
@@ -793,7 +843,7 @@ function renderExamSession(sid){
 function renderProgress(){
   const stats=skillStats(),modes=["learning","retention","diagnostic","transfer","evaluation","exam","confirmation"];
   const graded=attempts().filter(a=>a.correct===true||a.correct===false),correct=graded.filter(a=>a.correct).length,mastered=stats.filter(s=>s.state==="mastered").length;
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">LEARNING REPORT</span><h1>学習記録</h1><p class="muted">正答・転移・定着を分けて確認します。公式得点がないため100点換算はしません。</p></div></div><section class="grid three"><div class="card stat"><strong>${attempts().length}</strong><span>Attempt</span></div><div class="card stat"><strong>${graded.length?Math.round(correct/graded.length*100):0}%</strong><span>正答率</span></div><div class="card stat"><strong>${mastered}</strong><span>定着した技能</span></div></section><section class="card"><h2>技能別</h2><div class="table-wrap"><table><tr><th>技能</th><th>Attempt</th><th>正答率</th><th>Clean Transfer</th><th>Retention</th><th>状態</th></tr>
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">LEARNING REPORT</span><h1>学習記録</h1><p class="muted">正答・初見問題・翌日定着を分けて確認します。公式得点がないため100点換算はしません。</p></div></div><section class="grid three"><div class="card stat"><strong>${attempts().length}</strong><span>解答回数</span></div><div class="card stat"><strong>${graded.length?Math.round(correct/graded.length*100):0}%</strong><span>正答率</span></div><div class="card stat"><strong>${mastered}</strong><span>定着した技能</span></div></section><section class="card"><h2>技能別</h2><div class="table-wrap"><table><tr><th>技能</th><th>解答回数</th><th>正答率</th><th>初見問題</th><th>翌日定着</th><th>状態</th></tr>
     ${stats.map(s=>`<tr><td>${h(skillLabel(s.skill))}</td><td>${s.n}</td><td>${Math.round(s.acc*100)}%</td><td>${s.trC}/${s.trN}</td><td>${s.retC}/${s.retN}</td><td>${h(masteryStateLabel(s.state))}</td></tr>`).join("")||'<tr><td colspan="6">履歴なし</td></tr>'}</table></div></section>
     <section class="card"><h2>学習方法別</h2><div class="grid four">${modes.map(m=>{const x=modeStats(m);return `<div class="stat"><span>${h(modeLabel(m))}</span><strong>${x.n?Math.round(x.c/x.n*100):0}%</strong><span>${x.c}/${x.n}</span></div>`}).join("")}</div></section>
     <section class="card"><h2>過去問の実施状態</h2><div class="table-wrap"><table><tr><th>試験</th><th>状態</th></tr>${EXAMS.map(e=>`<tr><td>${h(e.label)}</td><td>${h(exposureLabel(examExposure(e.examId)))}</td></tr>`).join("")}</table></div></section>`;
