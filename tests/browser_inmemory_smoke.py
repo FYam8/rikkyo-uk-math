@@ -49,6 +49,7 @@ with sync_playwright() as p:
     assert page.evaluate("localStorage.getItem('rikkyoMathFull:prod:v3')!==null")
     assert "まず過去問一式で現在地を確認" in page.locator("#app").inner_text()
     assert "以前の単問学習も保存されています" in page.locator("#app").inner_text()
+    assert page.locator(".today-list article").count()>=2
     assert page.evaluate("CanonicalTodayPlanner.chooseCanonicalTodayTask([{lane:'practice',value:'p'},{lane:'past-paper',value:'e'}]).value")=="e"
 
     # Fresh learner starts with the full FY25A past paper, never an isolated
@@ -58,6 +59,7 @@ with sync_playwright() as p:
     assert "まず過去問一式で現在地を確認" in home_text
     assert "FY25 数学A・全" in home_text
     assert "R24-MATH-A 1(1)" not in home_text
+    assert "L1 / L2 Remediation" not in home_text and "Clean Transfer" not in home_text
     page.evaluate("render('library')")
     assert "FY25 数学A" in page.locator(".year-summary").inner_text()
     assert page.locator(".selection-plan .question-card").count()>1
@@ -107,14 +109,21 @@ with sync_playwright() as p:
     assert unmapped==["R24-MATH-B-Q4-5"]
     page.evaluate("renderSessionResult(AppStorage.session('flow-source'))")
     assert "過去問" in page.locator(".workflow-strip").inner_text()
+    assert "L1/L2" not in page.locator("#app").inner_text()
+    assert "CALCULATION" not in page.locator("#app").inner_text()
     page.get_by_role("button",name="誤答の解き直し・類題を始める").click()
-    assert "元問題の解き直し" in page.locator("#app").inner_text()
-    assert page.locator(".study-workspace").count()==1
+    assert "この1問をどう直しますか" in page.locator("#app").inner_text()
+    assert page.locator(".guided-review-grid").count()==1
     assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1")
     page.get_by_role("button",name="中断して戻る").first.click()
     assert "途中から再開" in page.locator("#app").inner_text()
     page.get_by_role("button",name="途中から再開").click()
-    assert "元問題の解き直し" in page.locator("#app").inner_text()
+    page.get_by_role("button",name="問題専用STEPで理解する").click()
+    assert "STEP 1 /" in page.locator("#app").inner_text()
+    while page.get_by_role("button",name="次のSTEPへ").count():
+        page.get_by_role("button",name="次のSTEPへ").click()
+    page.get_by_role("button",name="解説を閉じて自力再現へ").click()
+    assert "自力再現" in page.locator("#app").inner_text()
     page.locator('[data-slot="value"]').fill("-1")
     page.get_by_role("button",name=re.compile("採点")).click()
     assert page.evaluate("AppStorage.session('reinforce-flow-source').status")=="active"

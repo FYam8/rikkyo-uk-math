@@ -6,14 +6,14 @@
     targets:[{id:"minimum",label:"最低ライン",rank:1},{id:"stable",label:"安定圏",rank:2},{id:"safe",label:"安全圏",rank:3}],
     pastPaperRouteExamIds:["R25-MATH-A","R24-MATH-A","R24-MATH-B","R25-MATH-B","R26-MATH-B","R26-MATH-A"],
     learningPhases:[
-      {step:1,title:"FY25A Core Diagnostic",role:"diagnostic",examIds:["R25-MATH-A"]},
-      {step:2,title:"FY24A/B Training",role:"training",examIds:["R24-MATH-A","R24-MATH-B"]},
-      {step:3,title:"L1 / L2 Remediation",role:"remediation",examIds:[]},
-      {step:4,title:"Clean Transfer",role:"transfer",examIds:[]},
-      {step:5,title:"Retention",role:"retention",examIds:[]},
-      {step:6,title:"FY25B Intermediate Transfer",role:"transfer",examIds:["R25-MATH-B"]},
-      {step:7,title:"FY26B Final learner-unseen evaluation",role:"evaluation",examIds:["R26-MATH-B"]},
-      {step:8,title:"FY26A Parallel-form confirmation",role:"confirmation",examIds:["R26-MATH-A"]}
+      {step:1,title:"FY25Aで現在地を確認",role:"diagnostic",examIds:["R25-MATH-A"]},
+      {step:2,title:"FY24A/Bで弱点を見つける",role:"training",examIds:["R24-MATH-A","R24-MATH-B"]},
+      {step:3,title:"固定類題で弱点を補強",role:"remediation",examIds:[]},
+      {step:4,title:"初見問題で応用を確認",role:"transfer",examIds:[]},
+      {step:5,title:"翌日に定着を確認",role:"retention",examIds:[]},
+      {step:6,title:"FY25Bで中間確認",role:"transfer",examIds:["R25-MATH-B"]},
+      {step:7,title:"FY26Bで最終・未見評価",role:"evaluation",examIds:["R26-MATH-B"]},
+      {step:8,title:"FY26Aで別日程確認",role:"confirmation",examIds:["R26-MATH-A"]}
     ],
     practicePolicy:{weaknessSetSize:4,weaknessDisplayLimit:3},
     presentationLabels:{

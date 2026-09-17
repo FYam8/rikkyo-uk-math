@@ -1,0 +1,21 @@
+const fs=require('node:fs');
+const path=require('node:path');
+const assert=require('node:assert/strict');
+const root=path.join(__dirname,'..');
+const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
+const profile=fs.readFileSync(path.join(root,'src','schools','rikkyo','appProfile.js'),'utf8');
+const audit=fs.readFileSync(path.join(root,'docs','shared_engine_consumption_audit.md'),'utf8');
+const pin=JSON.parse(fs.readFileSync(path.join(root,'engine-source.json'),'utf8'));
+
+assert.equal(pin.masterRepository,'FYam8/waseshibu-math');
+assert.match(pin.masterCommit,/^[0-9a-f]{40}$/);
+assert.ok(pin.files['src/engine/todayPlanner.ts']);
+assert.ok(pin.files['src/engine/todayPlanner.runtime.js']);
+assert.match(app,/CanonicalTodayPlanner\.orderCanonicalTodayCandidates\(candidates\)/);
+assert.match(app,/CanonicalTodayPlanner\.nextIncompleteRouteId\(PROFILE\.pastPaperRouteExamIds,completed\)/);
+assert.doesNotMatch(fs.readFileSync(path.join(root,'src','engine','todayPlanner.ts'),'utf8'),/R25-MATH|FY25|minimum|stable|safe|waseshibu/i);
+assert.match(profile,/pastPaperRouteExamIds:\["R25-MATH-A","R24-MATH-A","R24-MATH-B"/);
+assert.doesNotMatch(app,/localStorage\.(?:setItem|getItem)\(["'`]waseshibu-math/);
+assert.match(audit,/まだ共通化されていない実行ロジック/);
+assert.match(audit,/学習エンジン全体が共通化済みとは判定しない/);
+console.log('PASS shared engine ownership: consumed core, school boundary, declared extraction gaps');
