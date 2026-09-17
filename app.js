@@ -299,22 +299,39 @@ function preferredActiveSession(){
   const priority=s=>s.flow?.sourceSessionId?4:s.mode==="diagnostic"?3:Array.isArray(s.problemIds)?2:s.problemId?1:0;
   return AppStorage.activeSessions().sort((a,b)=>priority(b)-priority(a)||String(b.updatedAt||b.startedAt||"").localeCompare(String(a.updatedAt||a.startedAt||"")))[0]||null;
 }
+const PAST_PAPER_ROUTE=["R25-MATH-A","R24-MATH-A","R24-MATH-B","R25-MATH-B","R26-MATH-B","R26-MATH-A"];
+function examCompletedForRoute(examId){
+  const required=examQuestions(examId).length;
+  if(!required)return false;
+  const finished=Object.values(AppStorage.get().sessions).some(s=>s?.examId===examId&&s.status==="finished"&&Array.isArray(s.results)&&new Set(s.results.map(r=>r.problemId)).size>=required);
+  return finished||examExposure(examId)==="practiced";
+}
+function nextPastPaperTask(){
+  const examId=PAST_PAPER_ROUTE.find(id=>!examCompletedForRoute(id));
+  if(!examId)return null;
+  const exam=examById(examId),count=examQuestions(examId).length;
+  return {examId,exam,count,isDiagnostic:examId===DIAG_EXAM};
+}
+function startPastPaperTask(examId){return examId===DIAG_EXAM?render("diagnostic"):startExam(examId);}
+function isRouteSession(s){return !!(s&&(s.flow?.sourceSessionId||s.mode==="diagnostic"||Array.isArray(s.problemIds)));}
 function setHomeTarget(id){AppStorage.setTarget(id);render("home");}
 function renderHome(){
   const st=AppStorage.get(),target=st.settings.target||"stable",a=attempts(),graded=a.filter(x=>x.correct===true||x.correct===false),correct=graded.filter(x=>x.correct===true).length,stats=skillStats();
   const pending=st.reviewItems.filter(x=>x.status==="pending"),due=pending.filter(x=>Date.parse(x.dueAt)<=Date.now()).length;
-  const resumable=preferredActiveSession(),pendingSource=pendingReinforcementSource(),today=chooseToday(),route=routeSnapshot(),weak=stats.filter(s=>s.state==="weak").sort((x,y)=>x.acc-y.acc).slice(0,3);
-  const todaySource=pendingSource?`${examById(pendingSource.examId)?.label||pendingSource.examId}・誤答 ${sourceWrongResults(pendingSource).length}問`:today.q.sourceType==="FIXED_PRACTICE"?`${today.q.practiceLevel||"類題"} / ${today.q.familyId||today.q.primarySkill}`:`${today.q.examId} ${today.q.label}`;
-  const todayReason=pendingSource?"過去問の誤答を直して類題で補強":today.reason;
-  const todayAction=pendingSource?`startReinforcement('${pendingSource.sessionId}')`:`render('today')`;
+  const anyResumable=preferredActiveSession(),pendingSource=pendingReinforcementSource(),today=chooseToday(),pastPaper=nextPastPaperTask(),resumable=isRouteSession(anyResumable)||!pastPaper?anyResumable:null,deferredResumable=anyResumable&&!resumable?anyResumable:null,route=routeSnapshot(),weak=stats.filter(s=>s.state==="weak").sort((x,y)=>x.acc-y.acc).slice(0,3);
+  const dueToday=today.reviewItemId?today:null;
+  const todaySource=resumable?resumeLabel(resumable):pendingSource?`${examById(pendingSource.examId)?.label||pendingSource.examId}・誤答 ${sourceWrongResults(pendingSource).length}問`:dueToday?(dueToday.q.sourceType==="FIXED_PRACTICE"?`${dueToday.q.practiceLevel||"類題"} / ${dueToday.q.familyId||dueToday.q.primarySkill}`:`${dueToday.q.examId} ${dueToday.q.label}`):pastPaper?`${pastPaper.exam.label}・全${pastPaper.count}問`:today.q.sourceType==="FIXED_PRACTICE"?`${today.q.practiceLevel||"類題"} / ${today.q.familyId||today.q.primarySkill}`:`${today.q.examId} ${today.q.label}`;
+  const todayReason=resumable?"中断した学習を続ける":pendingSource?"過去問の誤答を直して類題で補強":dueToday?dueToday.reason:pastPaper?(pastPaper.isDiagnostic?"まず過去問一式で現在地を確認":"次の過去問一式に挑戦"):today.reason;
+  const todayAction=resumable?"resumeActiveSession()":pendingSource?`startReinforcement('${pendingSource.sessionId}')`:dueToday?"render('today')":pastPaper?`startPastPaperTask('${pastPaper.examId}')`:"render('today')";
+  const todayButton=resumable?"途中から再開":pendingSource?"補強を始める":dueToday?"復習する":pastPaper?"過去問を始める":"今これをやる";
   app().innerHTML=`
   <section class="card today-hero">
     <div class="today-head"><div><span class="eyebrow">TODAY · ONE CLEAR NEXT STEP</span><h1>今日やること</h1><p>上から順に進めれば大丈夫です。診断、弱点補強、Clean Transfer、翌日定着を学習履歴から自動でつなぎます。</p></div>
     <div class="goal-block"><span>学習目標</span><strong>${h(targetLabel(target))}</strong><small>得点換算ではなく学習優先度</small></div></div>
     <div class="target-row"><span>目標を変更</span>${PROFILE.targets.map(t=>`<button class="target-chip ${target===t.id?"selected":""}" onclick="setHomeTarget('${t.id}')">${h(t.label)}</button>`).join("")}</div>
-    <div class="today-list"><article><span>1</span><div><b>${h(todayReason)}</b><small>${h(todaySource)}${pendingSource?"":"・"+h(today.q.primarySkillLabel||today.q.primarySkill)}</small></div><button class="primary" onclick="${todayAction}">今これをやる</button></article></div>
+    <div class="today-list"><article><span>1</span><div><b>${h(todayReason)}</b><small>${h(todaySource)}${(!resumable&&!pendingSource&&!dueToday&&!pastPaper)?"・"+h(today.q.primarySkillLabel||today.q.primarySkill):""}</small></div><button class="primary" onclick="${todayAction}">${h(todayButton)}</button></article></div>
   </section>
-  ${resumable?`<section class="card resume-card"><div><span class="eyebrow">RESUME</span><h2>中断した学習を続ける</h2><p class="muted">${h(resumeLabel(resumable))}</p></div><button class="primary" onclick="resumeActiveSession()">途中から再開</button></section>`:""}
+  ${deferredResumable?`<section class="card resume-card"><div><span class="eyebrow">SAVED · OPTIONAL</span><h2>以前の単問学習も保存されています</h2><p class="muted">${h(resumeLabel(deferredResumable))}</p></div><button class="secondary" onclick="resumeActiveSession()">以前の学習を再開</button></section>`:""}
   <section class="grid three">
     <div class="card stat"><strong>${a.length}</strong><span>Attempt</span></div>
     <div class="card stat"><strong>${graded.length?Math.round(correct/graded.length*100):0}%</strong><span>現在の正答率</span></div>
@@ -460,9 +477,12 @@ function chooseToday(){
   return {q:ALL_ITEMS[Math.floor(Math.random()*ALL_ITEMS.length)],mode:"learning",reason:"Mixed練習"};
 }
 function renderToday(){
+  const pastPaper=nextPastPaperTask(),candidate=preferredActiveSession(),resumable=isRouteSession(candidate)||!pastPaper?candidate:null;
+  if(resumable)return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · RESUME</span><h1>中断した学習を続ける</h1><p class="muted">保存した位置から、そのまま再開できます。</p></div></div><section class="card"><h2>${h(resumeLabel(resumable))}</h2><div class="actions"><button onclick="resumeActiveSession()">途中から再開</button></div></section>`;
   const pendingSource=pendingReinforcementSource();
   if(pendingSource){const existing=reinforcementForSource(pendingSource.sessionId);return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FOLLOW-UP</span><h1>過去問の弱点を補強</h1><p class="muted">次の過去問へ進む前に、誤答を元問題→固定類題の順で直します。</p></div></div><section class="card"><div class="workflow-strip"><div class="done"><b>1</b><span>過去問</span></div><div class="current"><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div><h2>${h(examById(pendingSource.examId)?.label||pendingSource.examId)}の補強</h2><p>誤答 ${sourceWrongResults(pendingSource).length}問。途中で閉じてもホームのResumeから続けられます。</p><div class="actions"><button onclick="startReinforcement('${pendingSource.sessionId}')">${existing?.status==="active"?"続きから再開":"補強を始める"}</button></div></section>`;}
   const p=chooseToday(),mins=p.q.estimatedMinutesRange||[.5,1.5];
+  if(!p.reviewItemId&&pastPaper)return app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY · PAST PAPER FIRST</span><h1>まず過去問から始める</h1><p class="muted">過去問を一式解き、結果に応じて誤答の解き直しと対応類題へ進みます。</p></div></div><section class="card today-hero"><div class="workflow-strip"><div class="current"><b>1</b><span>過去問</span></div><div><b>2</b><span>元問題を直す</span></div><div><b>3</b><span>L1/L2類題</span></div><div><b>4</b><span>転移・定着</span></div></div><div class="today-head"><div><span class="eyebrow">NEXT PAST PAPER</span><h2>${h(pastPaper.exam.label)}</h2><p>${pastPaper.isDiagnostic?"Core Diagnosticとして現在地を確認します。":"前の補強を終えたので、次の過去問へ進みます。"}</p></div><div class="goal-block"><span>問題数</span><strong>${pastPaper.count}問</strong><small>一式で実施</small></div></div><div class="actions"><button onclick="startPastPaperTask('${pastPaper.examId}')">過去問を始める</button><button class="secondary" onclick="render('exams')">過去問一覧</button></div></section>`;
   const target=AppStorage.get().settings.target||"stable",source=p.q.sourceType==="FIXED_PRACTICE"?`${p.q.practiceLevel||"類題"} / ${p.q.familyId||p.q.primarySkill}`:`${p.q.examId} / ${p.q.label}`;
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">TODAY</span><h1>今日の学習</h1><p class="muted">学習履歴から、いま一番効果の高い課題を1つ選んでいます。</p></div><span class="route-status">${h(targetLabel(target))}</span></div>
     <section class="card today-hero"><div class="today-head"><div><span class="eyebrow">NEXT TASK</span><h2>${h(p.reason)}</h2><p>${h(source)}</p></div><div class="goal-block"><span>目安時間</span><strong>${mins[0]}–${mins[1]}分</strong><small>解答中だけ計測</small></div></div>
