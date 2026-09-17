@@ -1,5 +1,6 @@
 
-let QUESTIONS=[], BANK=[], ALL_ITEMS=[], EXAMS=[], REGISTRY={};
+const PROFILE=window.RIKKYO_MATH_PROFILE;
+let QUESTIONS=[], BANK=[], ALL_ITEMS=[], EXAMS=[], REGISTRY={},CANONICAL_CONTENT=null;
 let activeTimer=null, activeTimerCommit=null;
 let currentView="home";
 
@@ -13,7 +14,8 @@ function createActiveTimer(initial=0){
   document.addEventListener("visibilitychange",vis);
   return {ms:()=>total+(running?Date.now()-last:0),stop:()=>{pause();document.removeEventListener("visibilitychange",vis);return total;}};
 }
-function qById(id){return ALL_ITEMS.find(q=>q.id===id);}
+function problemIdOf(q){return q?.problemId||q?.id;}
+function qById(id){return ALL_ITEMS.find(q=>problemIdOf(q)===id);}
 function examById(id){return EXAMS.find(e=>e.examId===id);}
 function examQuestions(id){return QUESTIONS.filter(q=>q.examId===id).sort((a,b)=>a.majorQuestion-b.majorQuestion||a.minorQuestion-b.minorQuestion);}
 function groupId(q){return `${q.examId}-Q${q.majorQuestion}`;}
@@ -24,14 +26,21 @@ function targetFor(q){return q.targetRelevance?.[AppStorage.get().settings.targe
 function app(){return document.getElementById("app");}
 
 async function boot(){
-  [QUESTIONS,BANK,EXAMS,REGISTRY]=await Promise.all([
-    fetch("data/questions.json").then(r=>r.json()),
-    fetch("data/practice_bank.json").then(r=>r.json()),
-    fetch("data/exams.json").then(r=>r.json()),
+  [CANONICAL_CONTENT,REGISTRY]=await Promise.all([
+    fetch("data/canonical_content.json").then(r=>r.json()),
     fetch("data/registry.json").then(r=>r.json())
   ]);
+  if(CANONICAL_CONTENT.contractVersion!==1||CANONICAL_CONTENT.schoolId!==PROFILE.id)throw new Error("canonical content identity mismatch");
+  const runtimeProblem=p=>({...p.schoolEvidence.sourceRecord,problemId:p.problemId,sourceProblemId:p.sourceProblemId,sourceKind:p.sourceKind,location:p.location,canonicalRole:p.role,canonicalAnswerAuthority:p.answerAuthority,qualityFlags:p.qualityFlags});
+  QUESTIONS=CANONICAL_CONTENT.problems.filter(p=>p.sourceKind==="past-paper").map(runtimeProblem);
+  BANK=CANONICAL_CONTENT.problems.filter(p=>p.sourceKind==="fixed-practice").map(runtimeProblem);
+  EXAMS=CANONICAL_CONTENT.exams.map(e=>({...e.schoolEvidence.sourceRecord,canonicalScoreAuthority:e.scoreAuthority}));
   ALL_ITEMS=[...QUESTIONS,...BANK];
-  AppStorage.setKnownProblemIds(ALL_ITEMS.map(q=>q.id));
+  AppStorage.setKnownProblemIds(ALL_ITEMS.map(problemIdOf));
+  document.title=PROFILE.brand.title;
+  document.getElementById("brandTitle").textContent=PROFILE.brand.title;
+  document.getElementById("brandSubtitle").textContent=PROFILE.brand.subtitle;
+  document.getElementById("brandFooter").textContent=PROFILE.brand.footer;
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>render(b.dataset.view));
   document.getElementById("menuBtn").onclick=()=>document.getElementById("nav").scrollIntoView({behavior:"smooth"});
   render("home");
@@ -50,8 +59,7 @@ function render(view){
 
 // ---------- exposure / transfer ----------
 function groupExposed(gid){
-  const prefix=gid+"-";
-  return ALL_ITEMS.some(q=>q.id.startsWith(prefix)&&AppStorage.exposureStatus(q.id)!=="unseen");
+  return QUESTIONS.filter(q=>`${q.examId}-Q${q.majorQuestion}`===gid).some(q=>AppStorage.exposureStatus(problemIdOf(q))!=="unseen");
 }
 function parallelMateQuestion(q){
   if(!q.parallelFormFamilyId)return null;
@@ -59,11 +67,11 @@ function parallelMateQuestion(q){
   if(!fam)return null;
   const slot=(fam.slots||[]).find(s=>s.slot===q.parallelFormSlot);
   if(!slot)return null;
-  const mate=slot.aQuestionId===q.id?slot.bQuestionId:slot.aQuestionId;
+  const mate=slot.aQuestionId===problemIdOf(q)?slot.bQuestionId:slot.aQuestionId;
   return qById(mate);
 }
 function cleanTransferEligible(q){
-  if(AppStorage.exposureStatus(q.id)!=="unseen")return false;
+  if(AppStorage.exposureStatus(problemIdOf(q))!=="unseen")return false;
   if(q.sourceType==="FIXED_PRACTICE"){
     return q.practiceLevel==="TRANSFER" && q.transferEligibleByDesign===true && !(q.nearDuplicateOf||[]).length;
   }
@@ -78,7 +86,7 @@ function cleanTransferEligible(q){
   return true;
 }
 function examExposure(examId){
-  const qs=examQuestions(examId),states=qs.map(q=>AppStorage.exposureStatus(q.id));
+  const qs=examQuestions(examId),states=qs.map(q=>AppStorage.exposureStatus(problemIdOf(q)));
   if(states.every(s=>s==="unseen"))return "unseen";
   if(states.every(s=>s==="practiced"))return "practiced";
   return "seen";
@@ -165,7 +173,7 @@ function explanationHtml(q){
 // ---------- attempt recording ----------
 function recordAttempt(q,ans,g,meta){
   return AppStorage.addAttempt({
-    problemId:q.id,contentVersion:q.contentVersion||1,answerSpecVersion:q.answerSpecVersion||1,scoreSpecVersion:null,
+    problemId:problemIdOf(q),contentVersion:q.contentVersion||1,answerSpecVersion:q.answerSpecVersion||1,scoreSpecVersion:null,
     answerSnapshot:ans,correct:g.reviewRequired?null:g.correct,requiresReview:!!g.reviewRequired,
     officialScore:null,learningScore:g.correct===true?1:g.correct===false?0:null,
     startedAt:meta.startedAt,submittedAt:new Date().toISOString(),activeDurationMs:meta.activeDurationMs??null,
@@ -180,11 +188,12 @@ function recordAttempt(q,ans,g,meta){
 function renderHome(){
   const a=attempts(),correct=a.filter(x=>x.correct===true).length,stats=skillStats();
   const due=AppStorage.get().reviewItems.filter(x=>x.status==="pending"&&Date.parse(x.dueAt)<=Date.now()).length;
+  const resumable=AppStorage.activeSessions()[0]||null;
   app().innerHTML=`
   <section class="card">
     <h2>212問＋類題Bank</h2>
     <p>FY24–FY26の数学A/B全212問に加え、Level 2 / Clean Transfer / Retention固定類題Bankを扱います。</p>
-    <div class="actions"><button onclick="render('today')">今日やること</button><button class="secondary" onclick="render('diagnostic')">Core Diagnostic</button><button class="secondary" onclick="render('exams')">過去問一覧</button></div>
+    <div class="actions"><button onclick="render('today')">今日やること</button>${resumable?'<button class="secondary" onclick="resumeActiveSession()">途中から再開</button>':''}<button class="secondary" onclick="render('diagnostic')">Core Diagnostic</button><button class="secondary" onclick="render('exams')">過去問一覧</button></div>
   </section>
   <section class="grid">
     <div class="stat"><span>過去問</span><strong>${QUESTIONS.length}</strong></div><div class="stat"><span>類題Bank</span><strong>${BANK.length}</strong></div>
@@ -193,7 +202,16 @@ function renderHome(){
     <div class="stat"><span>復習期限</span><strong>${due}</strong></div>
   </section>
   <section class="card warn"><strong>公式情報の扱い</strong><br>公式解答は存在しないため、正答は独立解答＋内部QAを基準にします。公式小問配点は不明です。FY26A Q5(3)は内部的にも曖昧性フラグ付きで、自動確定採点から除外します。</section>
-  <section class="card"><h3>現在のMastery</h3><p>${stats.filter(s=>s.state==="mastered").length}技能がClean Transfer＋Retention条件まで到達。未実施の技能はunknown/learning相当として扱います。</p></section>`;
+  <section class="card"><h3>現在のMastery</h3><p>${stats.filter(s=>s.state==="mastered").length}技能がClean Transfer＋Retention条件まで到達。未実施の技能はunknown/learning相当として扱います。</p></section>
+  <section class="card"><h3>学習ルート</h3><ol>${PROFILE.learningPhases.map(p=>`<li><strong>${h(p.title)}</strong> <span class="badge">${h(p.role)}</span></li>`).join("")}</ol><p class="small muted">FY26Bはlearner-unseen評価です。開始前は練習・Hint・解説に表示しません。FY26Aは評価後の確認です。</p></section>`;
+}
+
+function resumeActiveSession(){
+  const s=AppStorage.activeSessions()[0];if(!s)return render("home");
+  if(s.mode==="diagnostic")return renderDiagnostic();
+  if(Array.isArray(s.problemIds)&&s.examId)return renderExamSession(s.sessionId);
+  if(s.problemId)return renderPracticeQuestion(qById(s.problemId),s);
+  render("home");
 }
 
 // ---------- diagnostic ----------
@@ -312,7 +330,7 @@ function renderReview(){
 
 // ---------- Practice ----------
 function renderPractice(){
-  const examOptions=['<option value="">全ソース</option>','<option value="PRACTICE-BANK">類題Bank</option>',...EXAMS.map(e=>`<option value="${h(e.examId)}">${h(e.label)}</option>`)].join("");
+  const examOptions=['<option value="">全ソース</option>','<option value="PRACTICE-BANK">類題Bank</option>',...EXAMS.filter(e=>e.role!=="evaluation"&&e.role!=="confirmation").map(e=>`<option value="${h(e.examId)}">${h(e.label)}</option>`)].join("");
   const skills=[...new Set(ALL_ITEMS.map(q=>q.primarySkill))].sort();
   app().innerHTML=`<section class="card"><h2>練習</h2><div class="filter-grid">
     <label>ソース<select id="pfExam">${examOptions}</select></label>
@@ -325,7 +343,7 @@ function renderPractice(){
 }
 function renderPracticeList(){
   const exam=document.getElementById("pfExam")?.value||"",skill=document.getElementById("pfSkill")?.value||"",diff=document.getElementById("pfDiff")?.value||"",level=document.getElementById("pfLevel")?.value||"",seen=document.getElementById("pfSeen")?.value||"";
-  let list=ALL_ITEMS.filter(q=>(!exam||q.examId===exam)&&(!skill||q.primarySkill===skill)&&(!diff||q.difficulty===diff)&&(!level||q.practiceLevel===level));
+  let list=ALL_ITEMS.filter(q=>q.role!=="evaluation"&&q.role!=="confirmation").filter(q=>(!exam||q.examId===exam)&&(!skill||q.primarySkill===skill)&&(!diff||q.difficulty===diff)&&(!level||q.practiceLevel===level));
   if(seen==="unseen")list=list.filter(q=>AppStorage.exposureStatus(q.id)==="unseen");
   if(seen==="wrong")list=list.filter(q=>attempts().some(a=>a.problemId===q.id&&a.correct===false));
   list=list.sort((a,b)=>(a.sourceType==="FIXED_PRACTICE"?0:1)-(b.sourceType==="FIXED_PRACTICE"?0:1)||String(a.examId).localeCompare(String(b.examId))||(a.majorQuestion||0)-(b.majorQuestion||0)||(a.minorQuestion||0)-(b.minorQuestion||0)).slice(0,100);
@@ -393,12 +411,15 @@ function finishPractice(sid,next){const s=AppStorage.session(sid);if(s){s.status
 
 // ---------- Past exams / exam mode ----------
 function renderExams(){
+  const confirmationUnlocked=examExposure("R26-MATH-B")==="practiced";
   app().innerHTML=`<section class="card"><h2>過去問</h2><p class="muted">公式制限時間・小問配点は提供資料から確認できていないため、Exam Modeは経過時間のみ記録します。</p>
-    ${EXAMS.map(e=>{const exposure=examExposure(e.examId),mate=parallelMateExposed(e);return `<div class="card exam-card"><div><strong>${h(e.label)}</strong><p>${h(e.roleLabel)} / ${e.questionCount}問 / exposure=${h(exposure)}${mate?" / parallel mate既見":""}</p></div><div class="actions">${e.role==="diagnostic"?`<button onclick="render('diagnostic')">診断</button>`:`<button onclick="startExam('${e.examId}')">本番形式</button>`}<button class="secondary" onclick="practiceExam('${e.examId}')">学習</button></div></div>`}).join("")}</section>`;
+    ${EXAMS.map(e=>{const exposure=examExposure(e.examId),mate=parallelMateExposed(e),locked=e.role==="confirmation"&&!confirmationUnlocked;return `<div class="card exam-card"><div><strong>${h(e.label)}</strong><p>${h(e.roleLabel)} / ${e.questionCount}問 / exposure=${h(exposure)}${mate?" / parallel mate既見":""}</p>${e.role==="evaluation"?'<p class="small warn">learner-unseen評価：開始前は練習・Hint・解説に露出しません。</p>':''}${locked?'<p class="small muted">FY26B評価後に開放します。</p>':''}</div><div class="actions">${e.role==="diagnostic"?`<button onclick="render('diagnostic')">診断</button>`:`<button ${locked?'disabled':''} onclick="startExam('${e.examId}')">本番形式</button>`}${["evaluation","confirmation"].includes(e.role)?'':`<button class="secondary" onclick="practiceExam('${e.examId}')">学習</button>`}</div></div>`}).join("")}</section>`;
 }
 function practiceExam(examId){document.querySelector('[data-view="practice"]').click();setTimeout(()=>{document.getElementById("pfExam").value=examId;renderPracticeList();},0);}
 function startExam(examId){
-  const e=examById(examId),ids=examQuestions(examId).map(q=>q.id),before=Object.fromEntries(ids.map(id=>[id,AppStorage.exposureStatus(id)]));
+  const e=examById(examId);if(e.role==="confirmation"&&examExposure("R26-MATH-B")!=="practiced")return;
+  if(e.role==="evaluation"&&examExposure(examId)==="unseen"&&!confirm("FY26Bは最終learner-unseen評価です。開始すると問題が既見になります。開始しますか？"))return;
+  const ids=examQuestions(examId).map(problemIdOf),before=Object.fromEntries(ids.map(id=>[id,AppStorage.exposureStatus(id)]));
   const transfer=Object.fromEntries(ids.map(id=>[id,cleanTransferEligible(qById(id))]));
   let mode=e.role==="transfer"?"transfer":e.role==="evaluation"?"evaluation":e.role==="confirmation"?"confirmation":"exam";
   const sid=`exam-${examId}-v3`;
@@ -431,18 +452,20 @@ function renderProgress(){
 // ---------- data ----------
 function renderData(){
   const st=AppStorage.get();
-  app().innerHTML=`<section class="card"><h2>設定 / Export / Import</h2><p>namespace <strong>${h(AppStorage.namespace())}</strong> / Device ${h(st.device.deviceId)}</p>
+  const migration=AppStorage.migrationReport(),restorePoints=AppStorage.listRestorePoints();
+  app().innerHTML=`<section class="card"><h2>設定 / Export / Import</h2><p>namespace <strong>${h(AppStorage.namespace())}</strong> / Device ${h(st.device.deviceId)}</p><p class="small">canonical learner-state v1 / migration=${h(migration.status)} / 復元ポイント=${restorePoints.length}</p>
     <label>目標<select id="targetSel"><option value="minimum">最低</option><option value="stable">安定</option><option value="safe">安全</option></select></label>
     <label>端末名<input id="nick" type="text" value="${h(st.device.nickname||"")}"></label>
     <div class="actions"><button id="saveSettings">設定保存</button><button id="exportBtn">Export</button><button class="secondary" id="importBtn">Import</button></div>
     <textarea id="io" rows="14" placeholder="Export / Import JSON"></textarea>
-    <div class="actions"><button class="danger" id="resetBtn">学習データを初期化</button></div>
-    <p class="small muted">旧MVPのlocalStorageからv3へ前方Migration対応。Import前にBackupし、checksum・attemptId・problemIdを検証します。</p></section>`;
+    <div class="actions"><button class="danger" id="resetBtn">学習データを初期化</button>${restorePoints.length?'<button id="restoreLatest" class="secondary">最新の復元ポイントへ戻す</button>':''}</div>
+    <p class="small muted">旧MVP v1/v2およびFull v3を削除せずcanonical v1へ移行します。Import前に端末内復元ポイントを作成し、checksum・attemptId・problemId・same-ID conflictを検証します。</p></section>`;
   document.getElementById("targetSel").value=st.settings.target||"stable";
   document.getElementById("saveSettings").onclick=()=>{AppStorage.setTarget(document.getElementById("targetSel").value);AppStorage.setNickname(document.getElementById("nick").value);alert("保存しました");};
   document.getElementById("exportBtn").onclick=()=>document.getElementById("io").value=AppStorage.exportJson();
   document.getElementById("importBtn").onclick=()=>{try{AppStorage.importJson(document.getElementById("io").value);alert("Importしました");render("progress");}catch(e){alert(e.message);}};
   document.getElementById("resetBtn").onclick=()=>{if(confirm("全学習データを初期化しますか？バックアップは自動保存されます。")){AppStorage.reset();render("home");}};
+  if(restorePoints.length)document.getElementById("restoreLatest").onclick=()=>{if(confirm("最新の端末内復元ポイントへ戻しますか？")){AppStorage.restorePoint(restorePoints[0].id);render("home");}};
 }
 
 boot();

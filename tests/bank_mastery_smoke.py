@@ -1,23 +1,25 @@
 from playwright.sync_api import sync_playwright
-import json,pathlib,re,datetime
+import json,os,pathlib,re,datetime
 root=pathlib.Path(__file__).resolve().parent.parent
 html=(root/'index.html').read_text(encoding='utf-8')
 html=re.sub(r'<script src="[^"]+"></script>','',html)
-questions=json.loads((root/'data/questions.json').read_text())
-bank=json.loads((root/'data/practice_bank.json').read_text())
-exams=json.loads((root/'data/exams.json').read_text())
+canonical=json.loads((root/'data/canonical_content.json').read_text())
 registry=json.loads((root/'data/registry.json').read_text())
 with sync_playwright() as p:
-    b=p.chromium.launch(headless=True,executable_path='/usr/bin/chromium',args=['--no-sandbox'])
+    executable=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH",p.chromium.executable_path)
+    if not pathlib.Path(executable).is_file():
+        shells=sorted(pathlib.Path.home().glob(".cache/ms-playwright/chromium_headless_shell-*/chrome-linux*/headless_shell"))
+        executable=str(shells[-1] if shells else sorted(pathlib.Path.home().glob(".cache/ms-playwright/chromium-*/chrome-linux*/chrome"))[-1])
+    b=p.chromium.launch(headless=True,executable_path=executable,args=['--no-sandbox'])
     page=b.new_page()
     page.set_content(html)
     page.add_style_tag(path=str(root/"styles.css"))
-    page.evaluate("""([q,b,e,r])=>{
+    page.evaluate("""([c,r])=>{
       const store={};
       Object.defineProperty(window,'localStorage',{value:{getItem:k=>Object.prototype.hasOwnProperty.call(store,k)?store[k]:null,setItem:(k,v)=>store[k]=String(v),removeItem:k=>delete store[k]},configurable:true});
-      window.fetch=async(url)=>({json:async()=>url.includes('practice_bank')?b:url.includes('questions')?q:url.includes('exams')?e:r});
-    }""",[questions,bank,exams,registry])
-    page.add_script_tag(path=str(root/'scoring.js'));page.add_script_tag(path=str(root/'storage.js'));page.add_script_tag(path=str(root/'app.js'));page.wait_for_timeout(150)
+      window.fetch=async(url)=>({json:async()=>url.includes('canonical_content')?c:r});
+    }""",[canonical,registry])
+    page.add_script_tag(path=str(root/'src/schools/rikkyo/appProfile.js'));page.add_script_tag(path=str(root/'scoring.js'));page.add_script_tag(path=str(root/'storage.js'));page.add_script_tag(path=str(root/'app.js'));page.wait_for_timeout(150)
     # mastery path: 2 learning + 1 transfer + 1 retention, all correct
     now=datetime.datetime.now(datetime.timezone.utc).isoformat()
     ids=['PB-CALCULATION_FLUENCY-L2-01','PB-CALCULATION_FLUENCY-L2-02','PB-CALCULATION_FLUENCY-TRANSFER-01','PB-CALCULATION_FLUENCY-RETENTION-01']

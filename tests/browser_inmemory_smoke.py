@@ -1,35 +1,45 @@
 
 from playwright.sync_api import sync_playwright
-import json, pathlib, re
+import json, os, pathlib, re
 
 root=pathlib.Path(__file__).resolve().parent.parent
 html=(root/"index.html").read_text(encoding="utf-8")
 html=re.sub(r'<script src="[^"]+"></script>',"",html)
-questions=json.loads((root/"data/questions.json").read_text(encoding="utf-8"))
-exams=json.loads((root/"data/exams.json").read_text(encoding="utf-8"))
+canonical=json.loads((root/"data/canonical_content.json").read_text(encoding="utf-8"))
 registry=json.loads((root/"data/registry.json").read_text(encoding="utf-8"))
-bank=json.loads((root/"data/practice_bank.json").read_text(encoding="utf-8"))
 
 with sync_playwright() as p:
-    browser=p.chromium.launch(headless=True,executable_path="/usr/bin/chromium",args=["--no-sandbox"])
+    executable=os.environ.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH",p.chromium.executable_path)
+    if not pathlib.Path(executable).is_file():
+        shells=sorted(pathlib.Path.home().glob(".cache/ms-playwright/chromium_headless_shell-*/chrome-linux*/headless_shell"))
+        executable=str(shells[-1] if shells else sorted(pathlib.Path.home().glob(".cache/ms-playwright/chromium-*/chrome-linux*/chrome"))[-1])
+    browser=p.chromium.launch(headless=True,executable_path=executable,args=["--no-sandbox"])
     page=browser.new_page(viewport={"width":390,"height":844})
+    page_errors=[]
+    page.on("pageerror",lambda error: page_errors.append(str(error)))
     page.set_content(html)
     page.add_style_tag(path=str(root/"styles.css"))
-    page.evaluate("""([q,b,e,r])=>{
+    page.evaluate("""([c,r])=>{
       const store={};
       Object.defineProperty(window,'localStorage',{value:{
         getItem:k=>Object.prototype.hasOwnProperty.call(store,k)?store[k]:null,
         setItem:(k,v)=>store[k]=String(v),
         removeItem:k=>delete store[k]
       },configurable:true});
-      window.fetch=async(url)=>({json:async()=>url.includes('practice_bank')?b:url.includes('questions')?q:url.includes('exams')?e:r});
-    }""",[questions,bank,exams,registry])
+      store['rikkyoMathFull:prod:v3']=JSON.stringify({schemaVersion:3,namespace:'prod',attempts:[{attemptId:'seed',problemId:'R24-MATH-A-Q1-1',submittedAt:'2026-09-01T00:00:00.000Z',mode:'learning',correct:false}],reviewItems:[],sessions:{resume:{sessionId:'resume',problemId:'R24-MATH-A-Q1-1',status:'active'}},exposure:{'R24-MATH-A-Q1-1':{status:'seen',firstSeenAt:'2026-09-01T00:00:00.000Z',lastSeenAt:'2026-09-01T00:00:00.000Z'}},settings:{target:'stable'},device:{deviceId:'seed-device',nickname:'Seed',lastSync:null},createdAt:'2026-09-01T00:00:00.000Z'});
+      window.fetch=async(url)=>({json:async()=>url.includes('canonical_content')?c:r});
+    }""",[canonical,registry])
+    page.add_script_tag(path=str(root/"src/schools/rikkyo/appProfile.js"))
     page.add_script_tag(path=str(root/"scoring.js"))
     page.add_script_tag(path=str(root/"storage.js"))
     page.add_script_tag(path=str(root/"app.js"))
     page.wait_for_timeout(300)
 
     assert "212問＋類題Bank" in page.locator("#app").inner_text()
+    assert page.evaluate("AppStorage.migrationReport().status")=="migrated"
+    assert page.evaluate("AppStorage.get().attempts.length")==1
+    assert page.evaluate("localStorage.getItem('rikkyoMathFull:prod:v3')!==null")
+    assert "途中から再開" in page.locator("#app").inner_text()
 
     # Diagnostic: no metadata badges before submit.
     page.get_by_role("button",name="診断").click()
@@ -76,6 +86,22 @@ with sync_playwright() as p:
     page.wait_for_timeout(50)
     assert page.locator("#app .badge").count()==0
 
+    # Holdout/confirmation UX is enforced in the rendered browser.
+    page.evaluate("render('practice')")
+    assert "R26-MATH-B" not in page.locator("#app").inner_text()
+    page.evaluate("render('exams')")
+    confirmation=page.locator(".exam-card").filter(has_text="FY26 数学A").first
+    assert confirmation.get_by_role("button",name="本番形式").is_disabled()
+
+    # Portable backup round-trip keeps the Rikkyo identity and same records.
+    page.evaluate("render('data')")
+    page.get_by_role("button",name="Export").click()
+    exported=page.locator("#io").input_value()
+    assert json.loads(exported)["app"]=="rikkyo-uk-math"
+    page.get_by_role("button",name="Import").click()
+    page.wait_for_timeout(50)
+    assert page.evaluate("AppStorage.get().attempts.some(a=>a.attemptId==='seed')")
+
     # Imported/user-derived strings stay escaped in Progress.
     page.evaluate("""()=>AppStorage.addAttempt({attemptId:'xss1',problemId:'R24-MATH-A-Q1-1',contentVersion:1,answerSpecVersion:1,answerSnapshot:{value:'0'},correct:false,officialScore:null,learningScore:0,startedAt:new Date().toISOString(),submittedAt:new Date().toISOString(),activeDurationMs:1000,hintEvents:[],retryCount:0,mode:'learning',learnerExposureStatusBeforeAttempt:'seen',transferEligibleAtAttempt:false,errorCauseCandidates:[],deviceId:AppStorage.get().device.deviceId,sessionId:null,environment:'test',skill:'<img src=x onerror=window.__xss=1>',difficulty:'A'})""")
     page.evaluate("render('progress')")
@@ -86,6 +112,7 @@ with sync_playwright() as p:
     # Mobile overflow.
     overflow=page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth + 1")
     assert overflow is False
+    assert page_errors==[],page_errors
 
     print("PASS browser in-memory smoke")
     browser.close()

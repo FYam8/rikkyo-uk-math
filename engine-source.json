@@ -1,0 +1,25 @@
+{
+  "masterRepository": "FYam8/waseshibu-math",
+  "masterCommit": "72d5ac9d5c49f991d76f8bb93e0a04b82e74fb3e",
+  "contractVersion": 1,
+  "propagation": "vendored-pinned-candidate-only",
+  "schoolOwnedPathsExcluded": [
+    "src/schools/rikkyo/",
+    "data/",
+    "assets/",
+    "storage.js",
+    "scoring.js"
+  ],
+  "files": {
+    "src/engine/appProfile.ts": "ba110363f705419f30d87a61a6251abe043de0ecb9f201f21a687cc883da5748",
+    "src/engine/candidateWriteContract.ts": "49679bff719727d09b67213f3e3328f5ea7ea8d43a1d2a6267defe1b82723771",
+    "src/engine/contentContract.ts": "0197681b199cf25dddca50a5a201b67160e45311cb358f7ed743281046e2dc96",
+    "src/engine/examContract.ts": "dd3df7fdbab5620c75a9de9f7668d3cff62ff3a97a135744b8bfe622029fa3e2",
+    "src/engine/externalSyncContract.ts": "06b721a654e1e8834fb29f2c09f99767ad9f7c8f957989405b5f74a35a41bf03",
+    "src/engine/learnerState.ts": "62a500b729b8a9c877ab08dc96f47dee164ab361c69617cd1e0181080b20f91a",
+    "src/engine/localRestoreContract.ts": "362d6423d320663afb2ba2c3478361272b95d505c8b2b0a8f622b7b295ca5340",
+    "src/engine/noLossTransport.ts": "0db83ca0adc7fa7c31d45e64104a1aadd969f9fe0ab00934a340cb080cd1b378",
+    "src/engine/practiceHistoryContract.ts": "f4cf3bf34470c85413fa4df7fa7c31048cc090aa18106c122843f70587bc44ef",
+    "src/engine/remediationContract.ts": "1f013bd8a53e3ed121f067ce1df701b629396fb6b6ce4d89cdd83c4005da2cc8"
+  }
+}
