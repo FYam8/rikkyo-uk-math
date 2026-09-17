@@ -1,0 +1,20 @@
+name: Verify canonical Rikkyo candidate
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check --no-cache-dir sympy playwright
+          python -m playwright install --with-deps chromium
+      - name: Run full regression
+        run: node scripts/run-regression.mjs
