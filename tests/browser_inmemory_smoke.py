@@ -38,10 +38,12 @@ with sync_playwright() as p:
 
     # WaseShibu-parity shell: same five primary destinations and Today-first home.
     assert page.locator("#nav button").all_inner_texts()==["ホーム","学習する","演習ライブラリ","学習記録","データ管理"]
-    assert "TODAY · ONE CLEAR NEXT STEP" in page.locator("#app").inner_text()
+    assert "TODAY · MAX 10 TASKS" in page.locator("#app").inner_text()
     assert "今日やること" in page.locator("#app").inner_text()
     assert "学習履歴を保護中" in page.locator(".local-badge").inner_text()
     assert page.locator(".target-chip").count()==3
+    assert page.locator(".goal-eta article").count()==3
+    assert page.locator(".current-status").count()==1
     assert page.evaluate("AppStorage.migrationReport().status")=="migrated"
     assert page.evaluate("AppStorage.get().attempts.length")==1
     assert page.evaluate("localStorage.getItem('rikkyoMathFull:prod:v3')!==null")
@@ -56,21 +58,35 @@ with sync_playwright() as p:
     assert "まず過去問一式で現在地を確認" in home_text
     assert "FY25 数学A・全" in home_text
     assert "R24-MATH-A 1(1)" not in home_text
+    page.evaluate("render('library')")
+    assert "FY25 数学A" in page.locator(".year-summary").inner_text()
+    assert page.locator(".selection-plan .question-card").count()>1
+    assert "1試験分解く" in page.locator("#app").inner_text()
+    page.evaluate("renderLibrary('R26-MATH-B')")
+    assert page.locator(".selection-plan").count()==0
+    assert "開始前は問題内容を表示しません" in page.locator("#app").inner_text()
+    page.evaluate("renderLibrary('R26-MATH-A')")
+    assert page.locator(".selection-plan").count()==0
+    assert "FY26B評価後に開放" in page.locator("#app").inner_text()
+    page.evaluate("render('home')")
     page.get_by_role("button",name="過去問を始める").click()
     assert "STEP 過去問を解く" in page.locator("#app").inner_text()
     assert page.locator(".exam-workspace").count()==1
     assert page.locator(".answer-dock").count()==1
     assert page.locator(".major-tabs button").count()>1
-    assert page.locator(".question-tabs button").count()>1
+    assert page.locator(".dock-question").count()>1
+    assert page.locator(".problem-pane .exam-images img").count()>0
     assert page.locator("#app .badge").count()==0
     assert page.evaluate("AppStorage.session('diag-R25-MATH-A-full-v3').problemIds.length")==page.evaluate("examQuestions('R25-MATH-A').length")
     page.get_by_role("button",name=re.compile("解答欄")).click()
-    page.locator('[data-slot="value"]').fill("-3")
-    page.get_by_role("button",name=re.compile("次の小問")).click()
+    page.locator('[data-answer-for="R25-MATH-A-Q1-1"][data-slot="value"]').fill("-3")
+    assert page.locator("[data-total-entered]").inner_text()=="1"
+    assert page.locator("[data-major-entered]").inner_text()=="1"
+    page.get_by_role("button",name=re.compile("次の大問")).click()
     assert page.evaluate("AppStorage.session('diag-R25-MATH-A-full-v3').answers['R25-MATH-A-Q1-1'].value")=="-3"
     assert "入力 1/" in page.locator(".exam-compact-head").inner_text()
-    page.locator(".question-tabs button").first.click()
-    assert page.locator('[data-slot="value"]').input_value()=="-3"
+    page.locator(".major-tabs button").first.click()
+    assert page.locator('[data-answer-for="R25-MATH-A-Q1-1"][data-slot="value"]').input_value()=="-3"
     page.evaluate("""()=>{const ids=examQuestions('R25-MATH-A').map(q=>q.id),results=ids.map((id,i)=>({problemId:id,correct:i!==0,reviewRequired:false}));ids.forEach(id=>AppStorage.setExposure(id,'practiced'));AppStorage.setSession('diag-R25-MATH-A-full-v3',{sessionId:'diag-R25-MATH-A-full-v3',mode:'diagnostic',examId:'R25-MATH-A',problemIds:ids,index:ids.length-1,answers:{},results,startedAt:'2026-09-01T00:00:00.000Z',finishedAt:'2026-09-01T00:30:00.000Z',status:'finished'});render('home')}""")
     assert "過去問の誤答を直して類題で補強" in page.locator("#app").inner_text()
     page.evaluate("""()=>{const source=AppStorage.session('diag-R25-MATH-A-full-v3'),flow=buildReinforcementSpec(source);AppStorage.setSession('reinforce-diag-R25-MATH-A-full-v3',{sessionId:'reinforce-diag-R25-MATH-A-full-v3',status:'finished',flow:{...flow,index:flow.problemIds.length}});render('home')}""")

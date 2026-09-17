@@ -66,8 +66,8 @@
   "fileChecksums": {
     "release_manifest.json": "30f0d3f8b5944d0875512e82dc169c945e4c9f05cfd6985e1c4bae4f6a605648",
     "index.html": "bdb67c874026aac5eb435aa3a23d70b8ae0e0dcf3874590e3bf3b708105e9f7a",
-    "styles.css": "6057aeddde791e2131ad100eca6ed62185432ac5eb4d0f04e982e04d129f3398",
-    "app.js": "4e12660e7317cae14e33316e3dd034d5a66183467e547bbfcb925d6e87e7aadc",
+    "styles.css": "5e31a44fd85df565867c212131d64622b3e93ac04e4b2dc233f16828cbfcab01",
+    "app.js": "a950984993bcca63b7d51d38f68fbc89fd41b71ee296dc2b823f74d9dbe4a8c7",
     "storage.js": "5238055d74a216335435a25a6db45277b35b8787fbdbdacdc425fb4a18b13c5b",
     "scoring.js": "3006d27a909b44da82d5c4a5f39cc1358eeb9a38eedb997a82655092e7820ecf",
     "src/schools/rikkyo/appProfile.js": "cc995068821fb3b2270006f7e6446ba87d4dcca22166c5474b6cf4d7c3214997",
