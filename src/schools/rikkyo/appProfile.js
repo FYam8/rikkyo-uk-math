@@ -15,6 +15,7 @@
       {step:7,title:"FY26B Final learner-unseen evaluation",role:"evaluation",examIds:["R26-MATH-B"]},
       {step:8,title:"FY26A Parallel-form confirmation",role:"confirmation",examIds:["R26-MATH-A"]}
     ],
+    practicePolicy:{weaknessSetSize:4,weaknessDisplayLimit:3},
     runtime:{storageNamespace:"rikkyo-uk-math",canonicalStateKeyPrefix:"rikkyo-uk-math",backupAppId:"rikkyo-uk-math",eventNamespace:"rikkyo-uk-math",updateChannel:"rikkyo-uk-math-updates",progressSync:{enabled:false,indexedDbName:"rikkyo-uk-math-progress-sync",appId:"rikkyo-uk-math",browserApiOverrideKey:"__RIKKYO_UK_MATH_PROGRESS_API__",deploymentApiBase:null}},
     contentPolicy:{officialScoreAvailable:false,scoreAuthority:"not-available",reviewRequiredProblemIds:["R26-MATH-A-Q5-3"],learnerUnseenExamIds:["R26-MATH-B"]}
   };
