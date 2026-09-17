@@ -29,6 +29,7 @@ with sync_playwright() as p:
       store['rikkyoMathFull:prod:v3']=JSON.stringify({schemaVersion:3,namespace:'prod',attempts:[{attemptId:'seed',problemId:'R24-MATH-A-Q1-1',submittedAt:'2026-09-01T00:00:00.000Z',mode:'learning',correct:false}],reviewItems:[],sessions:{resume:{sessionId:'resume',problemId:'R24-MATH-A-Q1-1',status:'active'}},exposure:{'R24-MATH-A-Q1-1':{status:'seen',firstSeenAt:'2026-09-01T00:00:00.000Z',lastSeenAt:'2026-09-01T00:00:00.000Z'}},settings:{target:'stable'},device:{deviceId:'seed-device',nickname:'Seed',lastSync:null},createdAt:'2026-09-01T00:00:00.000Z'});
       window.fetch=async(url)=>({json:async()=>url.includes('canonical_content')?c:r});
     }""",[canonical,registry])
+    page.add_script_tag(path=str(root/"src/engine/todayPlanner.runtime.js"))
     page.add_script_tag(path=str(root/"src/schools/rikkyo/appProfile.js"))
     page.add_script_tag(path=str(root/"scoring.js"))
     page.add_script_tag(path=str(root/"storage.js"))
@@ -46,6 +47,7 @@ with sync_playwright() as p:
     assert page.evaluate("localStorage.getItem('rikkyoMathFull:prod:v3')!==null")
     assert "まず過去問一式で現在地を確認" in page.locator("#app").inner_text()
     assert "以前の単問学習も保存されています" in page.locator("#app").inner_text()
+    assert page.evaluate("CanonicalTodayPlanner.chooseCanonicalTodayTask([{lane:'practice',value:'p'},{lane:'past-paper',value:'e'}]).value")=="e"
 
     # Fresh learner starts with the full FY25A past paper, never an isolated
     # FY24 training item. The next paper appears only after its reinforcement.
