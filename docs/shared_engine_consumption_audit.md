@@ -1,0 +1,48 @@
+# 共通エンジン利用監査
+
+監査基準: WaseShibu canonical master `0df2acee51595fa4fd20fe7bcac89610da04e7b7`
+
+## 結論
+
+立教は canonical contract と Today の優先順位エンジンを、固定SHAから取り込んで実行している。ただし、学習エンジン全体が共通化済みとは判定しない。日次計画の固定、補強セッション、段階解説、復習予約、回答UIと採点実装には学校アプリ側の実装が残る。
+
+## 共通化済みで実行時にも使用
+
+- `todayPlanner`: 再開、過去問後の補強、期限復習、次の過去問、通常練習の優先順位
+- opaque `examId` の学習ルート選択
+- canonical content / exam / learner-state / remediation / practice-history contract
+- no-loss transport、candidate write、local restore、external sync boundary contract
+
+上記ファイルは `engine-source.json` にSHA-256を記録し、`verify-engine-pin.mjs` が改変を拒否する。立教本番が早稲田 main の更新で即時に変わる構造にはしていない。
+
+## 学校パッケージに残すべきもの
+
+- A/Bを含む試験順序と各試験の役割
+- minimum / stable / safe の意味
+- 623問の内容、解答Authority、説明、画像、`REVIEW_REQUIRED`
+- Rikkyo専用の保存・backup・event・sync identity
+- 学習者向け日本語ラベル
+- 公式配点がないという採点方針
+
+## まだ共通化されていない実行ロジック
+
+以下は「共通化済み」と表示してはならない。
+
+1. 1日最大10件の計画を日付単位で固定し、完了・先取りを保存する仕組み
+2. 元問題の直しから固定類題、初見確認、翌日定着へ進む補強状態機械
+3. 段階解説のSTEP進行、自己評価、答え閲覧後の自力再現の共通状態
+4. 固定セットの問題選択、正解済み維持、未正解だけの再周回
+5. 復習間隔と翌日定着予約の共通スケジューラ
+6. answer input と deterministic grading の共通UIアダプタ
+
+今回、立教UXは早稲田の学習方法へ合わせたが、未抽出ロジックを立教独自コードのまま「共通エンジン」とは扱わない。今後は WaseShibu 側で純粋関数として抽出し、既存動作のparityを証明してから pinned candidate として立教へ伝播する。
+
+## 今回確認する境界
+
+- generic engine は `year`、targetの数値、problemId文字列を解釈しない
+- Rikkyo runtime は `waseshibu-math-*` を読み書きしない
+- FY26Bは練習・ヒント・解説から除外する
+- FY26A Q5(3)は `REVIEW_REQUIRED` を維持する
+- score欠損を0点にしない
+- Today優先順位は vendored runtime を呼び、立教内に別の優先順位表を持たない
+
