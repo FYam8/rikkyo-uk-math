@@ -57,9 +57,20 @@ with sync_playwright() as p:
     assert "FY25 数学A・全" in home_text
     assert "R24-MATH-A 1(1)" not in home_text
     page.get_by_role("button",name="過去問を始める").click()
-    assert "CORE DIAGNOSTIC" in page.locator("#app").inner_text()
+    assert "STEP 過去問を解く" in page.locator("#app").inner_text()
+    assert page.locator(".exam-workspace").count()==1
+    assert page.locator(".answer-dock").count()==1
+    assert page.locator(".major-tabs button").count()>1
+    assert page.locator(".question-tabs button").count()>1
     assert page.locator("#app .badge").count()==0
     assert page.evaluate("AppStorage.session('diag-R25-MATH-A-full-v3').problemIds.length")==page.evaluate("examQuestions('R25-MATH-A').length")
+    page.get_by_role("button",name=re.compile("解答欄")).click()
+    page.locator('[data-slot="value"]').fill("-3")
+    page.get_by_role("button",name=re.compile("次の小問")).click()
+    assert page.evaluate("AppStorage.session('diag-R25-MATH-A-full-v3').answers['R25-MATH-A-Q1-1'].value")=="-3"
+    assert "入力 1/" in page.locator(".exam-compact-head").inner_text()
+    page.locator(".question-tabs button").first.click()
+    assert page.locator('[data-slot="value"]').input_value()=="-3"
     page.evaluate("""()=>{const ids=examQuestions('R25-MATH-A').map(q=>q.id),results=ids.map((id,i)=>({problemId:id,correct:i!==0,reviewRequired:false}));ids.forEach(id=>AppStorage.setExposure(id,'practiced'));AppStorage.setSession('diag-R25-MATH-A-full-v3',{sessionId:'diag-R25-MATH-A-full-v3',mode:'diagnostic',examId:'R25-MATH-A',problemIds:ids,index:ids.length-1,answers:{},results,startedAt:'2026-09-01T00:00:00.000Z',finishedAt:'2026-09-01T00:30:00.000Z',status:'finished'});render('home')}""")
     assert "過去問の誤答を直して類題で補強" in page.locator("#app").inner_text()
     page.evaluate("""()=>{const source=AppStorage.session('diag-R25-MATH-A-full-v3'),flow=buildReinforcementSpec(source);AppStorage.setSession('reinforce-diag-R25-MATH-A-full-v3',{sessionId:'reinforce-diag-R25-MATH-A-full-v3',status:'finished',flow:{...flow,index:flow.problemIds.length}});render('home')}""")
@@ -82,13 +93,14 @@ with sync_playwright() as p:
     assert "過去問" in page.locator(".workflow-strip").inner_text()
     page.get_by_role("button",name="誤答の解き直し・類題を始める").click()
     assert "元問題の解き直し" in page.locator("#app").inner_text()
+    assert page.locator(".study-workspace").count()==1
     assert page.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1")
     page.get_by_role("button",name="中断して戻る").first.click()
     assert "途中から再開" in page.locator("#app").inner_text()
     page.get_by_role("button",name="途中から再開").click()
     assert "元問題の解き直し" in page.locator("#app").inner_text()
     page.locator('[data-slot="value"]').fill("-1")
-    page.get_by_role("button",name="採点").click()
+    page.get_by_role("button",name=re.compile("採点")).click()
     assert page.evaluate("AppStorage.session('reinforce-flow-source').status")=="active"
     page.get_by_role("button",name="次のおすすめ").click()
     assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.index")==1
@@ -97,7 +109,7 @@ with sync_playwright() as p:
     l1_id=page.evaluate("AppStorage.session('reinforce-flow-source').problemId")
     l1_expected=page.evaluate("id=>String(qById(id).answerCandidate??qById(id).answerSpec.expected)",l1_id)
     page.locator('[data-slot="value"]').fill(l1_expected)
-    page.get_by_role("button",name="採点").click()
+    page.get_by_role("button",name=re.compile("採点")).click()
     page.get_by_role("button",name="次のおすすめ").click()
     assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.index")==2
     assert page.evaluate("""id=>{const source=qById(id),pending=AppStorage.get().reviewItems.find(r=>r.status==='pending'&&qById(r.problemId)?.practiceLevel==='RETENTION');return !!pending&&qById(pending.problemId).familyId===source.familyId}""",l1_id)
@@ -116,7 +128,7 @@ with sync_playwright() as p:
     page.locator('[data-math-key="/"]').click()
     assert inp.input_value()=="/"
     inp.fill("999999")
-    page.get_by_role("button",name="採点").click()
+    page.get_by_role("button",name=re.compile("採点")).click()
     page.wait_for_timeout(50)
     feedback=page.locator("#feedback").inner_text()
     assert "答えはまだ表示しません" in feedback
@@ -126,7 +138,7 @@ with sync_playwright() as p:
     page.wait_for_timeout(50)
     page.locator('[data-slot="x"]').fill("2")
     page.locator('[data-slot="y"]').fill("-4")
-    page.get_by_role("button",name="採点").click()
+    page.get_by_role("button",name=re.compile("採点")).click()
     page.wait_for_timeout(50)
     assert "自動確定採点から除外" in page.locator("#feedback").inner_text()
 
@@ -147,6 +159,8 @@ with sync_playwright() as p:
     page.evaluate("startExam('R24-MATH-A')")
     page.wait_for_timeout(50)
     assert page.locator("#app .badge").count()==0
+    assert page.locator(".exam-workspace").count()==1
+    assert "入力 0/" in page.locator(".exam-compact-head").inner_text()
 
     # Holdout/confirmation UX is enforced in the rendered browser.
     page.evaluate("render('practice')")
