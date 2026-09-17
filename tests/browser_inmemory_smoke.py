@@ -147,6 +147,10 @@ with sync_playwright() as p:
     assert "開始時に固定した4問" in page.locator("#app").inner_text()
     assert page.locator(".wase-practice").count()==1
     assert page.locator(".answer-dock").count()==0
+    fixed_text=page.locator("#app").inner_text()
+    assert "計算" in fixed_text
+    assert "CALCULATION_FLUENCY" not in fixed_text
+    assert "L1 /" not in fixed_text and "L2 /" not in fixed_text
     weakness_sid=page.evaluate("weaknessFlowSessions('CALCULATION')[0].sessionId")
     weakness_ids=page.evaluate("sid=>AppStorage.session(sid).flow.problemIds",weakness_sid)
     assert len(weakness_ids)==4
@@ -183,6 +187,14 @@ with sync_playwright() as p:
     page.wait_for_timeout(50)
     feedback=page.locator("#feedback").inner_text()
     assert "答えはまだ表示しません" in feedback
+
+    # Internal practice/family IDs are never shown to learners.
+    page.evaluate("openPractice('PB-CALCULATION_FLUENCY-L2-01','learning','')")
+    readable_text=page.locator("#app").inner_text()
+    assert "入試レベルで練習" in readable_text
+    assert "計算の正確さ・速さ" in readable_text
+    assert "CALCULATION_FLUENCY" not in readable_text
+    assert "L2 /" not in readable_text
 
     # Ambiguity case should return review-required, not forced wrong/correct.
     page.evaluate("openPractice('R26-MATH-A-Q5-3','learning','')")
