@@ -5,10 +5,12 @@ const root=path.join(__dirname,'..');
 const app=fs.readFileSync(path.join(root,'app.js'),'utf8');
 const profile=fs.readFileSync(path.join(root,'src','schools','rikkyo','appProfile.js'),'utf8');
 const audit=fs.readFileSync(path.join(root,'docs','shared_engine_consumption_audit.md'),'utf8');
+const readme=fs.readFileSync(path.join(root,'README.md'),'utf8');
 const pin=JSON.parse(fs.readFileSync(path.join(root,'engine-source.json'),'utf8'));
 
 assert.equal(pin.masterRepository,'FYam8/waseshibu-math');
 assert.match(pin.masterCommit,/^[0-9a-f]{40}$/);
+assert.match(readme,new RegExp(pin.masterCommit));
 assert.ok(pin.files['src/engine/todayPlanner.ts']);
 assert.ok(pin.files['src/engine/todayPlanner.runtime.js']);
 assert.ok(pin.files['src/engine/learningFlow.ts']);
