@@ -16,6 +16,7 @@ const commands = [
   ['node', ['tests/holdout_isolation.test.js']],
   ['node', ['tests/reinforcement_mapping.test.js']],
   ['node', ['tests/shared_today_planner.test.js']],
+  ['node', ['tests/daily_plan_boundary.test.js']],
   ['node', ['tests/shared_learning_flow.test.js']],
   ['node', ['tests/shared_engine_ownership.test.js']],
   ['node', ['tests/release_invariants.test.js']],

@@ -457,16 +457,25 @@ function canonicalTodayDecision(){
   candidates.push({lane:"practice",value:today});
   return {decision:CanonicalTodayPlanner.chooseCanonicalTodayTask(candidates),anyResumable,pendingSource,today,pastPaper};
 }
+function todaySessionTaskId(s){
+  if(s.flow?.sourceSessionId)return `reinforce:${s.flow.sourceSessionId}`;
+  if(s.examId&&Array.isArray(s.problemIds))return `paper:${s.examId}`;
+  if(s.flow?.type==="weakness-set")return `fixed-set:${s.sessionId}`;
+  if(s.reviewItemId)return `review:${s.reviewItemId}`;
+  if(s.problemId)return `practice:${s.problemId}`;
+  return `resume:${s.sessionId}`;
+}
 function canonicalTodayQueue(limit=10){
   const st=AppStorage.get(),anyResumable=preferredActiveSession(),pendingSource=pendingReinforcementSource(),pastPaper=nextPastPaperTask(),candidates=[];
-  if(anyResumable)candidates.push({lane:isRouteSession(anyResumable)||!pastPaper?"route-resume":"optional-resume",value:{id:`resume:${anyResumable.sessionId}`,title:"中断した学習を続ける",detail:resumeLabel(anyResumable),action:"resumeActiveSession()",button:"途中から再開"}});
+  const resumeTask=anyResumable?{id:todaySessionTaskId(anyResumable),title:"中断した学習を続ける",detail:resumeLabel(anyResumable),action:"resumeActiveSession()",button:"途中から再開"}:null;
+  if(resumeTask)candidates.push({lane:isRouteSession(anyResumable)||!pastPaper?"route-resume":"optional-resume",value:resumeTask});
   if(pendingSource&&!anyResumable?.flow?.sourceSessionId)candidates.push({lane:"reinforcement",value:{id:`reinforce:${pendingSource.sessionId}`,title:"過去問の誤答を直して類題で補強",detail:`${examById(pendingSource.examId)?.label||pendingSource.examId}・誤答 ${sourceWrongResults(pendingSource).length}問`,action:`startReinforcement('${pendingSource.sessionId}')`,button:"補強を始める"}});
   const due=st.reviewItems.filter(item=>item.status==="pending"&&Date.parse(item.dueAt)<=Date.now()).sort((a,b)=>Date.parse(a.dueAt)-Date.parse(b.dueAt));
   for(const item of due){const q=qById(item.problemId);if(!q)continue;candidates.push({lane:"due-review",priority:-Date.parse(item.dueAt),value:{id:`review:${item.reviewItemId}`,title:"期限が来た問題を復習",detail:q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(q):`${q.examId} ${q.label}`,action:`openPractice('${h(q.id)}','retention','${h(item.reviewItemId)}')`,button:"復習する"}});}
   if(pastPaper)candidates.push({lane:"past-paper",value:{id:`paper:${pastPaper.examId}`,title:pastPaper.isDiagnostic?"まず過去問一式で現在地を確認":"次の過去問一式に挑戦",detail:`${pastPaper.exam.label}・全${pastPaper.count}問`,action:`startPastPaperTask('${pastPaper.examId}')`,button:"過去問を始める"}});
   const ordinary=chooseToday();
   if(!ordinary.reviewItemId&&!pastPaper&&!pendingSource)candidates.push({lane:"practice",value:{id:`practice:${ordinary.q.id}`,title:ordinary.reason,detail:ordinary.q.sourceType==="FIXED_PRACTICE"?fixedPracticeTitle(ordinary.q):`${ordinary.q.examId} ${ordinary.q.label}`,action:`openPractice('${h(ordinary.q.id)}','${h(ordinary.mode)}','')`,button:"今これをやる"}});
-  return CanonicalTodayPlanner.orderCanonicalTodayCandidates(candidates).slice(0,limit).map(item=>item.value);
+  return CanonicalTodayPlanner.uniqueCanonicalTodayCandidates(candidates,value=>value.id).slice(0,limit).map(item=>resumeTask?.id===item.value.id?resumeTask:item.value);
 }
 function setHomeTarget(id){AppStorage.setTarget(id);render("home");}
 function renderHome(){
