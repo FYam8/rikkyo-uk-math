@@ -121,8 +121,29 @@ with sync_playwright() as p:
     page.get_by_role("button",name="途中から再開").click()
     page.get_by_role("button",name="問題専用STEPで理解する").click()
     assert "STEP 1 /" in page.locator("#app").inner_text()
-    while page.get_by_role("button",name="次のSTEPへ").count():
-        page.get_by_role("button",name="次のSTEPへ").click()
+    assert not page.locator("#sourceStepNext").is_enabled()
+    page.locator("#sourceStepNote").fill("符号を確認して計算する <記録>")
+    page.get_by_role("button",name="まだ分からない",exact=True).click()
+    assert not page.locator("#sourceStepNext").is_enabled()
+    assert page.locator("#sourceStepNote").input_value()=="符号を確認して計算する <記録>"
+    page.get_by_role("button",name="中断して戻る",exact=True).click()
+    page.get_by_role("button",name="途中から再開",exact=True).click()
+    assert "STEP 1 /" in page.locator("#app").inner_text()
+    assert page.locator("#sourceStepNote").input_value()=="符号を確認して計算する <記録>"
+    assert not page.locator("#sourceStepNext").is_enabled()
+    while page.get_by_role("button",name="次のSTEPへ",exact=True).count():
+        page.get_by_role("button",name="ヒント・確認を見て分かった",exact=True).click()
+        page.get_by_role("button",name="次のSTEPへ",exact=True).click()
+    last_step=page.locator(".guided-step .eyebrow").inner_text()
+    page.get_by_role("button",name="中断して戻る",exact=True).click()
+    page.get_by_role("button",name="途中から再開",exact=True).click()
+    assert page.locator(".guided-step .eyebrow").inner_text()==last_step
+    page.get_by_role("button",name="ヒント・確認を見て分かった",exact=True).click()
+    saved_steps=page.evaluate("AppStorage.session('reinforce-flow-source').flow.stepProgressByProblemId")
+    exported_steps=page.evaluate("JSON.parse(AppStorage.exportJson()).learnerState.sessionsById['reinforce-flow-source'].flow.stepProgressByProblemId")
+    assert saved_steps==exported_steps
+    page.evaluate("AppStorage.importJson(AppStorage.exportJson())")
+    assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.stepProgressByProblemId")==saved_steps
     page.get_by_role("button",name="解説を閉じて自力再現へ").click()
     assert "自力再現" in page.locator("#app").inner_text()
     page.locator('[data-slot="value"]').fill("-1")

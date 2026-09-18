@@ -22,6 +22,7 @@ assert.match(app,/CanonicalLearningFlow\.applyCanonicalFixedSetResult/);
 assert.match(app,/CanonicalLearningFlow\.nextCanonicalFixedSetIndex/);
 assert.match(app,/CanonicalLearningFlow\.nextCanonicalSequenceIndex/);
 assert.match(app,/CanonicalLearningFlow\.clampCanonicalStepIndex/);
+assert.match(app,/CanonicalLearningFlow\.canAdvanceCanonicalGuidedStep/);
 assert.doesNotMatch(fs.readFileSync(path.join(root,'src','engine','todayPlanner.ts'),'utf8'),/R25-MATH|FY25|minimum|stable|safe|waseshibu/i);
 assert.doesNotMatch(fs.readFileSync(path.join(root,'src','engine','learningFlow.ts'),'utf8'),/R25-MATH|FY25|['"](?:minimum|stable|safe)['"]|waseshibu/i);
 assert.match(profile,/pastPaperRouteExamIds:\["R25-MATH-A","R24-MATH-A","R24-MATH-B"/);
