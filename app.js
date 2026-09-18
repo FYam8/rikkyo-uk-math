@@ -214,7 +214,7 @@ function advanceReinforcement(session,renderNext){
   if(session.flow?.type==="weakness-set")return advanceWeaknessSet(session,renderNext);
   const next=CanonicalLearningFlow.nextCanonicalSequenceIndex(session.flow.index||0,session.flow.problemIds.length);
   if(next<0){session.status="finished";session.flow.index=session.flow.problemIds.length;session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);return renderReinforcementComplete(session);}
-  const nextId=session.flow.problemIds[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
+  const nextId=session.flow.problemIds[next],q=qById(nextId);session.flow.index=next;session.flow.sourceReviewView="choose";session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
   renderNext?renderPracticeQuestion(q,session):render("home");
 }
 function renderReinforcementComplete(session){
@@ -265,7 +265,7 @@ function advanceWeaknessSet(session,renderNext){
   }
   const next=CanonicalLearningFlow.nextCanonicalFixedSetIndex(ids,[...completed],session.flow.index||0);
   if(next<0)return renderWeaknessSetComplete(session);
-  const nextId=ids[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
+  const nextId=ids[next],q=qById(nextId);session.flow.index=next;session.flow.sourceReviewView="choose";session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
   renderNext?renderPracticeQuestion(q,session):render("home");
 }
 function renderWeaknessSetComplete(session){
@@ -698,27 +698,63 @@ function markSourceReviewHelp(sid,level){
   s.hintLevel=Math.max(s.hintLevel||0,level);s.hintEvents=[...(s.hintEvents||[]),{level,at:new Date().toISOString()}];AppStorage.setSession(sid,s);
 }
 function renderSourceReviewChoice(q,s){
+  s.flow.sourceReviewView="choose";AppStorage.setSession(s.sessionId,s);
   AppStorage.setExposure(q.id,"seen");
   const title=`${q.examId} ${q.label}`,steps=Array.isArray(q.explanationSteps)?q.explanationSteps:[];
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">元問題を1問ずつ直す</span><h1>${h(title)}</h1><p class="muted">この1問だけに集中し、理解してから固定類題へ進みます。</p></div><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div>
     <div class="one-question-banner"><b>今はこの1問だけ</b><span>ほかの問題の正答は表示しません。</span><em>${h(skillLabel(q.primarySkill))}</em></div>
     <div class="guided-review-grid"><section class="card guided-problem"><div class="section-head"><div><span class="eyebrow">元問題</span><h2>${h(title)}</h2></div></div>${sourceBlock(q,true)}</section>
     <section class="card guided-panel"><h2>この1問をどう直しますか？</h2><p class="muted">早稲田版と同じく、理解のしかたを選んでから最後に自力で再現します。</p><div class="guided-choice">
-      ${steps.length?`<button onclick="renderSourceReviewGuide('${s.sessionId}',0)">問題専用STEPで理解する</button>`:""}
+      ${steps.length?`<button onclick="renderSourceReviewGuide('${s.sessionId}')">問題専用STEPで理解する</button>`:""}
       <button class="secondary" onclick="renderSourceReviewRetry('${s.sessionId}')">もう一度自力で解く</button>
       <button class="secondary" onclick="renderSourceReviewExplanation('${s.sessionId}')">この1問の答え・解説を見る</button>
     </div></section></div>`;
 }
-function renderSourceReviewGuide(sid,index=0){
+function sourceStepProgress(s){
+  s.flow.stepProgressByProblemId??={};
+  return s.flow.stepProgressByProblemId[s.problemId]??={index:0,steps:{}};
+}
+function sourceStepCanAdvance(step){
+  // Authored prose has no response validator: only explicit understanding
+  // after viewing the explanation can advance, never a claimed matched answer.
+  return CanonicalLearningFlow.canAdvanceCanonicalGuidedStep({assessment:step?.assessment,responseValid:false,hintLevel:3});
+}
+function saveSourceStepNote(sid,index,value){
+  const s=AppStorage.session(sid);if(!s||!sourceReviewSession(s))return;
+  const progress=sourceStepProgress(s),old=progress.steps[index]||{};
+  progress.steps[index]={...old,note:value};AppStorage.setSession(sid,s);
+}
+function assessSourceStep(sid,index,assessment){
+  const s=AppStorage.session(sid);if(!s||!sourceReviewSession(s)||!["guided","unclear"].includes(assessment))return;
+  const progress=sourceStepProgress(s);
+  progress.steps[index]={...(progress.steps[index]||{}),assessment,assessedAt:new Date().toISOString()};
+  AppStorage.setSession(sid,s);renderSourceReviewGuide(sid,index);
+}
+function advanceSourceStep(sid,index){
+  const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return;
+  const progress=sourceStepProgress(s),step=progress.steps[index];
+  if(!sourceStepCanAdvance(step))return;
+  step.completedAt=new Date().toISOString();AppStorage.setSession(sid,s);
+  if(index<q.explanationSteps.length-1)return renderSourceReviewGuide(sid,index+1);
+  return renderSourceReviewRetry(sid);
+}
+function renderSourceReviewGuide(sid,index){
   const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");
   const steps=Array.isArray(q.explanationSteps)?q.explanationSteps:[];if(!steps.length)return renderSourceReviewExplanation(sid);
-  markSourceReviewHelp(sid,3);const step=CanonicalLearningFlow.clampCanonicalStepIndex(index,steps.length);
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">問題専用STEP</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">解き方を順に確認し、最後に解説を閉じて自分で解き直します。</p></div><button class="secondary" onclick="renderSourceReviewChoice(qById('${h(q.id)}'),AppStorage.session('${sid}'))">学び方を選び直す</button></div>
+  const progress=sourceStepProgress(s),step=CanonicalLearningFlow.clampCanonicalStepIndex(index??progress.index,steps.length);
+  progress.index=step;s.flow.sourceReviewView="guided";AppStorage.setSession(sid,s);
+  markSourceReviewHelp(sid,3);
+  const saved=progress.steps[step]||{},canAdvance=sourceStepCanAdvance(saved);
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">問題専用STEP</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">解き方を順に確認し、最後に解説を閉じて自分で解き直します。</p></div><div class="actions"><button class="secondary" onclick="renderSourceReviewChoice(qById('${h(q.id)}'),AppStorage.session('${sid}'))">学び方を選び直す</button><button class="secondary" onclick="finishPractice('${sid}',false)">中断して戻る</button></div></div>
     <div class="guided-review-grid"><section class="card guided-problem">${sourceBlock(q,true)}</section><section class="card guided-panel"><div class="guided-progress">${steps.map((_,i)=>`<button class="${i<=step?"active":""}" onclick="renderSourceReviewGuide('${sid}',${i})">${i+1}</button>`).join("")}</div>
-      <div class="guided-step"><span class="eyebrow">STEP ${step+1} / ${steps.length}</span><h2>${step===0?"着眼点を確認":"解き方をつなぐ"}</h2><p>${h(steps[step])}</p><textarea rows="4" placeholder="自分の途中式・考え方を記録（任意）"></textarea><p class="muted">途中式の記録欄は自己整理用です。内容を自動採点しません。</p><div class="actions">
+      <div class="guided-step"><span class="eyebrow">STEP ${step+1} / ${steps.length}</span><h2>${step===0?"着眼点を確認":"解き方をつなぐ"}</h2><p>${h(steps[step])}</p><textarea id="sourceStepNote" rows="4" placeholder="自分の途中式・考え方を記録（任意）">${h(saved.note||"")}</textarea><p class="muted">メモは自動保存します。途中式の正誤は自動判定しません。</p>
+      <p role="status">${saved.assessment==="unclear"?"まだ分からないところを確認しましょう。答え・解説を読むか、前のSTEPへ戻れます。":saved.assessment==="guided"?"理解したことを記録しました。最後に自力で解き直して確認します。":"このSTEPの理解度を選んでください。"}</p><div class="actions">
+      <button class="${saved.assessment==="guided"?"primary":"secondary"}" onclick="assessSourceStep('${sid}',${step},'guided')">ヒント・確認を見て分かった</button>
+      <button class="${saved.assessment==="unclear"?"primary":"secondary"}" onclick="assessSourceStep('${sid}',${step},'unclear')">まだ分からない</button>
       ${step>0?`<button class="secondary" onclick="renderSourceReviewGuide('${sid}',${step-1})">前のSTEP</button>`:""}
-      ${step<steps.length-1?`<button onclick="renderSourceReviewGuide('${sid}',${step+1})">次のSTEPへ</button>`:`<button onclick="renderSourceReviewRetry('${sid}')">解説を閉じて自力再現へ</button>`}
+      <button id="sourceStepNext" ${canAdvance?"":"disabled"} onclick="advanceSourceStep('${sid}',${step})">${step<steps.length-1?"次のSTEPへ":"解説を閉じて自力再現へ"}</button>
       <button class="secondary" onclick="renderSourceReviewExplanation('${sid}')">この1問の答えを見る</button></div></div></section></div>`;
+  document.getElementById("sourceStepNote").addEventListener("input",event=>saveSourceStepNote(sid,step,event.target.value));
 }
 function renderSourceReviewExplanation(sid){
   const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");markSourceReviewHelp(sid,3);
@@ -726,13 +762,18 @@ function renderSourceReviewExplanation(sid){
 }
 function renderSourceReviewRetry(sid){
   const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");AppStorage.setExposure(q.id,"seen");
+  s.flow.sourceReviewView="retry";AppStorage.setSession(sid,s);
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">自力再現</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">STEP・解説を閉じました。最初から自力で解いて採点します。</p></div><button class="secondary" onclick="finishPractice('${sid}',false)">中断して戻る</button></div><article class="card practice-card wase-practice"><div class="qtop"><div><span class="eyebrow">元問題の解き直し</span><h2>${h(skillLabel(q.primarySkill))}</h2></div><span class="progress-pill">${Math.min((s.flow?.index||0)+1,s.flow?.problemIds?.length||1)} / ${s.flow?.problemIds?.length||1}</span></div>${sourceBlock(q,true)}<div class="practice-answer"><h3>解答</h3>${qInput(q,s.answerDraft||{})}<div class="math-keypad-wrap">${mathKeypad()}</div><div id="feedback"></div><div class="actions practice-actions"><button id="submitPractice">この1問を採点する</button><button class="secondary" onclick="renderSourceReviewGuide('${sid}',0)">問題専用STEP</button><button class="secondary" onclick="renderSourceReviewExplanation('${sid}')">答え・解説</button></div></div></article>`;
   activeTimer=createActiveTimer(s.activeMs||0);activeTimerCommit=ms=>{const c=AppStorage.session(sid);if(c){c.activeMs=ms;AppStorage.setSession(sid,c);}};mountFloatingTimer();
   bindDraftSaver(q,ans=>{const c=AppStorage.session(sid);if(c){c.answerDraft=ans;c.activeMs=activeTimer?activeTimer.ms():c.activeMs;AppStorage.setSession(sid,c);}});bindMathKeypad();document.getElementById("submitPractice").onclick=()=>submitPractice(sid,q);
 }
 function renderPracticeQuestion(q,s){
   if(s.flow?.type==="weakness-set")return renderWeaknessSetQuestion(q,s);
-  if(sourceReviewSession(s))return renderSourceReviewChoice(q,s);
+  if(sourceReviewSession(s)){
+    if(s.flow.sourceReviewView==="guided")return renderSourceReviewGuide(s.sessionId);
+    if(s.flow.sourceReviewView==="retry")return renderSourceReviewRetry(s.sessionId);
+    return renderSourceReviewChoice(q,s);
+  }
   AppStorage.setExposure(q.id,"seen");
   const flow=s.flow,flowIndex=flow?.index||0;
   const title=q.sourceType==="FIXED_PRACTICE"?h(fixedPracticeTitle(q)):h(q.examId+" "+q.label);
