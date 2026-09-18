@@ -18,6 +18,8 @@ const paths = [
   'src/engine/externalSyncContract.ts',
   'src/engine/learnerState.ts',
   'src/engine/localRestoreContract.ts',
+  'src/engine/learningFlow.ts',
+  'src/engine/learningFlow.runtime.js',
   'src/engine/noLossTransport.ts',
   'src/engine/practiceHistoryContract.ts',
   'src/engine/remediationContract.ts',

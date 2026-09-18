@@ -19,7 +19,7 @@ with sync_playwright() as p:
       Object.defineProperty(window,'localStorage',{value:{getItem:k=>Object.prototype.hasOwnProperty.call(store,k)?store[k]:null,setItem:(k,v)=>store[k]=String(v),removeItem:k=>delete store[k]},configurable:true});
       window.fetch=async(url)=>({json:async()=>url.includes('canonical_content')?c:r});
     }""",[canonical,registry])
-    page.add_script_tag(path=str(root/'src/engine/todayPlanner.runtime.js'));page.add_script_tag(path=str(root/'src/schools/rikkyo/appProfile.js'));page.add_script_tag(path=str(root/'scoring.js'));page.add_script_tag(path=str(root/'storage.js'));page.add_script_tag(path=str(root/'app.js'));page.wait_for_timeout(150)
+    page.add_script_tag(path=str(root/'src/engine/todayPlanner.runtime.js'));page.add_script_tag(path=str(root/'src/engine/learningFlow.runtime.js'));page.add_script_tag(path=str(root/'src/schools/rikkyo/appProfile.js'));page.add_script_tag(path=str(root/'scoring.js'));page.add_script_tag(path=str(root/'storage.js'));page.add_script_tag(path=str(root/'app.js'));page.wait_for_timeout(150)
     # mastery path: 2 learning + 1 transfer + 1 retention, all correct
     now=datetime.datetime.now(datetime.timezone.utc).isoformat()
     ids=['PB-CALCULATION_FLUENCY-L2-01','PB-CALCULATION_FLUENCY-L2-02','PB-CALCULATION_FLUENCY-TRANSFER-01','PB-CALCULATION_FLUENCY-RETENTION-01']

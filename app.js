@@ -212,8 +212,8 @@ function startReinforcement(sourceSessionId){
 function reinforcementStageLabel(s){const stage=s.flow?.stageByProblemId?.[s.problemId];return stage==="source-review"?"元問題の解き直し":stage==="l1"?practiceLevelLabel("L1"):stage==="l2"?practiceLevelLabel("L2"):stage==="transfer"?practiceLevelLabel("TRANSFER"):"弱点補強";}
 function advanceReinforcement(session,renderNext){
   if(session.flow?.type==="weakness-set")return advanceWeaknessSet(session,renderNext);
-  const next=(session.flow.index||0)+1;
-  if(next>=session.flow.problemIds.length){session.status="finished";session.flow.index=next;session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);return renderReinforcementComplete(session);}
+  const next=CanonicalLearningFlow.nextCanonicalSequenceIndex(session.flow.index||0,session.flow.problemIds.length);
+  if(next<0){session.status="finished";session.flow.index=session.flow.problemIds.length;session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);return renderReinforcementComplete(session);}
   const nextId=session.flow.problemIds[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
   renderNext?renderPracticeQuestion(q,session):render("home");
 }
@@ -237,13 +237,23 @@ function weaknessSetQuestions(skill){
   }
   return picked.slice(0,size);
 }
+function applyWeaknessSetResult(session,problemId,qualifying){
+  const flow=session.flow||{},ids=flow.problemIds||[],completed=flow.completedQuestionIds||[];
+  const set={problemIds:ids,completedProblemIds:completed,retryProblemIds:flow.retryProblemIds||[],pendingProblemIds:flow.pendingProblemIds||ids.filter(id=>!completed.includes(id)),requiredCount:ids.length,status:ids.length&&completed.length>=ids.length?"completed":"active"};
+  const next=CanonicalLearningFlow.applyCanonicalFixedSetResult({set,problemId,qualifying});
+  if(next.stale)return;
+  flow.completedQuestionIds=next.completedProblemIds;
+  flow.retryProblemIds=next.retryProblemIds;
+  flow.pendingProblemIds=next.pendingProblemIds;
+}
 function startWeaknessSet(skill){
   const existing=weaknessFlowSessions(skill).find(s=>s.status==="active");
   if(existing)return renderPracticeQuestion(qById(existing.problemId),existing);
   const selected=weaknessSetQuestions(skill);
   if(!selected.length)return render("practice");
   const ids=selected.map(problemIdOf),first=selected[0],sid=`weakness-${stableNumber(skill)}-${AppStorage.uuid()}`;
-  const flow={type:"weakness-set",skill,problemIds:ids,completedQuestionIds:[],index:0,createdAt:new Date().toISOString()};
+  const fixed=CanonicalLearningFlow.reconcileCanonicalFixedSet({requiredCount:ids.length,eligibleProblemIds:ids,fixedProblemIds:ids,completedProblemIds:[],orderedCandidateIds:ids});
+  const flow={type:"weakness-set",skill,problemIds:fixed.problemIds,completedQuestionIds:fixed.completedProblemIds,retryProblemIds:fixed.retryProblemIds,pendingProblemIds:fixed.pendingProblemIds,index:0,createdAt:new Date().toISOString()};
   const session={sessionId:sid,mode:modeForPractice(first),problemId:problemIdOf(first),answerDraft:{},startedAt:new Date().toISOString(),activeMs:0,retryCount:0,hintLevel:0,hintEvents:[],exposureBefore:AppStorage.exposureStatus(problemIdOf(first)),status:"active",flow};
   AppStorage.setSession(sid,session);renderPracticeQuestion(first,session);
 }
@@ -253,8 +263,7 @@ function advanceWeaknessSet(session,renderNext){
     session.status="finished";session.flow.completedAt=new Date().toISOString();AppStorage.setSession(session.sessionId,session);
     return renderWeaknessSetComplete(session);
   }
-  let next=-1;
-  for(let offset=1;offset<=ids.length;offset++){const index=((session.flow.index||0)+offset)%ids.length;if(!completed.has(ids[index])){next=index;break;}}
+  const next=CanonicalLearningFlow.nextCanonicalFixedSetIndex(ids,[...completed],session.flow.index||0);
   if(next<0)return renderWeaknessSetComplete(session);
   const nextId=ids[next],q=qById(nextId);session.flow.index=next;session.problemId=nextId;session.mode=modeForPractice(q);session.answerDraft={};session.startedAt=new Date().toISOString();session.activeMs=0;session.retryCount=0;session.hintLevel=0;session.hintEvents=[];session.exposureBefore=AppStorage.exposureStatus(nextId);session.problemCompleted=false;session.status="active";AppStorage.setSession(session.sessionId,session);
   renderNext?renderPracticeQuestion(q,session):render("home");
@@ -702,7 +711,7 @@ function renderSourceReviewChoice(q,s){
 function renderSourceReviewGuide(sid,index=0){
   const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");
   const steps=Array.isArray(q.explanationSteps)?q.explanationSteps:[];if(!steps.length)return renderSourceReviewExplanation(sid);
-  markSourceReviewHelp(sid,1);const step=Math.max(0,Math.min(steps.length-1,index));
+  markSourceReviewHelp(sid,1);const step=CanonicalLearningFlow.clampCanonicalStepIndex(index,steps.length);
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">問題専用STEP</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">段階解説は監査済みの既存内容をそのまま使っています。</p></div><button class="secondary" onclick="renderSourceReviewChoice(qById('${h(q.id)}'),AppStorage.session('${sid}'))">学び方を選び直す</button></div>
     <div class="guided-review-grid"><section class="card guided-problem">${sourceBlock(q,true)}</section><section class="card guided-panel"><div class="guided-progress">${steps.map((_,i)=>`<button class="${i<=step?"active":""}" onclick="renderSourceReviewGuide('${sid}',${i})">${i+1}</button>`).join("")}</div>
       <div class="guided-step"><span class="eyebrow">STEP ${step+1} / ${steps.length}</span><h2>${step===0?"着眼点を確認":"解き方をつなぐ"}</h2><p>${h(steps[step])}</p><textarea rows="4" placeholder="自分の途中式・考え方を記録（任意）"></textarea><p class="muted">途中式の記録欄は自己整理用です。内容を自動採点しません。</p><div class="actions">
@@ -779,12 +788,12 @@ function submitPractice(sid,q){
       const rq=retentionCandidateFor(q);
       AppStorage.scheduleReview(rq?.id||q.id,rq?.primarySkill||q.primarySkill,true,prior);
     }
-    if(s.flow?.type==="weakness-set")s.flow.completedQuestionIds=[...new Set([...(s.flow.completedQuestionIds||[]),problemIdOf(q)])];
+    if(s.flow?.type==="weakness-set")applyWeaknessSetResult(s,problemIdOf(q),true);
     s.problemCompleted=true;s.status=s.flow?.problemIds?"active":"finished";AppStorage.setSession(sid,s);
     f.className="ok";f.innerHTML=`正解。${explanationHtml(q)}<div class="actions"><button onclick="finishPractice('${sid}',true)">次のおすすめ</button><button class="secondary" onclick="finishPractice('${sid}',false)">終了</button></div>`;
     document.getElementById("submitPractice").disabled=true;const hintButton=document.getElementById("hint1Btn");if(hintButton)hintButton.disabled=true;return;
   }
-  AppStorage.scheduleReview(q.id,q.primarySkill,false);s.retryCount++;s.activeMs=0;s.startedAt=now;AppStorage.setSession(sid,s);
+  AppStorage.scheduleReview(q.id,q.primarySkill,false);if(s.flow?.type==="weakness-set")applyWeaknessSetResult(s,problemIdOf(q),false);s.retryCount++;s.activeMs=0;s.startedAt=now;AppStorage.setSession(sid,s);
   f.className="ng";f.innerHTML=(s.retryCount===1?"不正解。答えはまだ表示しません。条件・符号・図を見直してください。":"まだ一致しません。H1/H2を使うか、もう一度自力で修正できます。")+(s.flow?.type==="weakness-set"?`<div class="actions"><button class="secondary" onclick="finishPractice('${sid}',true)">次の問題へ</button></div>`:"");
   activeTimer=createActiveTimer(0);activeTimerCommit=ms=>{const c=AppStorage.session(sid);if(c){c.activeMs=ms;AppStorage.setSession(sid,c);}};
   mountFloatingTimer();

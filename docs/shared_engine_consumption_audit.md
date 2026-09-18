@@ -1,14 +1,15 @@
 # 共通エンジン利用監査
 
-監査基準: WaseShibu canonical master `0df2acee51595fa4fd20fe7bcac89610da04e7b7`
+監査基準: WaseShibu canonical master `8c66bb6859646759bbe30b47f1218ef0e720626d`
 
 ## 結論
 
-立教は canonical contract と Today の優先順位エンジンを、固定SHAから取り込んで実行している。ただし、学習エンジン全体が共通化済みとは判定しない。日次計画の固定、補強セッション、段階解説、復習予約、回答UIと採点実装には学校アプリ側の実装が残る。
+立教は canonical contract、Todayの優先順位、段階解説と固定類題の状態遷移を、固定SHAから取り込んで実行している。ただし、学習エンジン全体が共通化済みとは判定しない。日次計画の固定、学校別の問題選択、復習予約、回答UIと採点実装には学校アプリ側の実装が残る。
 
 ## 共通化済みで実行時にも使用
 
 - `todayPlanner`: 再開、過去問後の補強、期限復習、次の過去問、通常練習の優先順位
+- `learningFlow`: STEP位置、解説後の自力再現判定、固定セットの正解済み維持、未正解再周回、順次進行
 - opaque `examId` の学習ルート選択
 - canonical content / exam / learner-state / remediation / practice-history contract
 - no-loss transport、candidate write、local restore、external sync boundary contract
@@ -29,13 +30,13 @@
 以下は「共通化済み」と表示してはならない。
 
 1. 1日最大10件の計画を日付単位で固定し、完了・先取りを保存する仕組み
-2. 元問題の直しから固定類題、初見確認、翌日定着へ進む補強状態機械
-3. 段階解説のSTEP進行、自己評価、答え閲覧後の自力再現の共通状態
-4. 固定セットの問題選択、正解済み維持、未正解だけの再周回
+2. 元問題・固定類題・初見確認・翌日定着へ割り当てる学校別コンテンツ選択
+3. 段階解説での自己評価UI（状態遷移そのものは共通化済み）
+4. 固定セット候補の学校別選択（正解済み維持と未正解再周回は共通化済み）
 5. 復習間隔と翌日定着予約の共通スケジューラ
 6. answer input と deterministic grading の共通UIアダプタ
 
-今回、立教UXは早稲田の学習方法へ合わせたが、未抽出ロジックを立教独自コードのまま「共通エンジン」とは扱わない。今後は WaseShibu 側で純粋関数として抽出し、既存動作のparityを証明してから pinned candidate として立教へ伝播する。
+今回、立教UXは早稲田の学習方法へ合わせ、共通化できる状態遷移は WaseShibu 側で純粋関数として抽出し、parity確認後の固定SHAから取り込んだ。未抽出ロジックを立教独自コードのまま「共通エンジン」とは扱わない。
 
 ## 今回確認する境界
 
@@ -45,4 +46,4 @@
 - FY26A Q5(3)は `REVIEW_REQUIRED` を維持する
 - score欠損を0点にしない
 - Today優先順位は vendored runtime を呼び、立教内に別の優先順位表を持たない
-
+- STEP進行と固定類題の再周回は vendored runtime を呼び、立教内に別の状態遷移を持たない

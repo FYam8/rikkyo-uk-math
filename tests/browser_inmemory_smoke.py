@@ -30,6 +30,7 @@ with sync_playwright() as p:
       window.fetch=async(url)=>({json:async()=>url.includes('canonical_content')?c:r});
     }""",[canonical,registry])
     page.add_script_tag(path=str(root/"src/engine/todayPlanner.runtime.js"))
+    page.add_script_tag(path=str(root/"src/engine/learningFlow.runtime.js"))
     page.add_script_tag(path=str(root/"src/schools/rikkyo/appProfile.js"))
     page.add_script_tag(path=str(root/"scoring.js"))
     page.add_script_tag(path=str(root/"storage.js"))
