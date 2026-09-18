@@ -401,7 +401,8 @@ function recordAttempt(q,ans,g,meta){
     hintEvents:meta.hintEvents||[],retryCount:meta.retryCount||0,mode:meta.mode,
     learnerExposureStatusBeforeAttempt:meta.exposureBefore,transferEligibleAtAttempt:!!meta.transferEligible,
     errorCauseCandidates:[],deviceId:AppStorage.get().device.deviceId,sessionId:meta.sessionId||null,
-    environment:AppStorage.namespace(),skill:q.primarySkill,difficulty:q.difficulty,examId:q.examId
+    environment:AppStorage.namespace(),skill:q.primarySkill,difficulty:q.difficulty,examId:q.examId,
+    ...(meta.guidedEvidence?{guidedEvidence:meta.guidedEvidence}:{})
   });
 }
 
@@ -711,8 +712,8 @@ function renderSourceReviewChoice(q,s){
 function renderSourceReviewGuide(sid,index=0){
   const s=AppStorage.session(sid),q=s&&qById(s.problemId);if(!s||!q)return render("home");
   const steps=Array.isArray(q.explanationSteps)?q.explanationSteps:[];if(!steps.length)return renderSourceReviewExplanation(sid);
-  markSourceReviewHelp(sid,1);const step=CanonicalLearningFlow.clampCanonicalStepIndex(index,steps.length);
-  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">問題専用STEP</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">段階解説は監査済みの既存内容をそのまま使っています。</p></div><button class="secondary" onclick="renderSourceReviewChoice(qById('${h(q.id)}'),AppStorage.session('${sid}'))">学び方を選び直す</button></div>
+  markSourceReviewHelp(sid,3);const step=CanonicalLearningFlow.clampCanonicalStepIndex(index,steps.length);
+  app().innerHTML=`<div class="page-head"><div><span class="eyebrow">問題専用STEP</span><h1>${h(q.examId)} ${h(q.label)}</h1><p class="muted">解き方を順に確認し、最後に解説を閉じて自分で解き直します。</p></div><button class="secondary" onclick="renderSourceReviewChoice(qById('${h(q.id)}'),AppStorage.session('${sid}'))">学び方を選び直す</button></div>
     <div class="guided-review-grid"><section class="card guided-problem">${sourceBlock(q,true)}</section><section class="card guided-panel"><div class="guided-progress">${steps.map((_,i)=>`<button class="${i<=step?"active":""}" onclick="renderSourceReviewGuide('${sid}',${i})">${i+1}</button>`).join("")}</div>
       <div class="guided-step"><span class="eyebrow">STEP ${step+1} / ${steps.length}</span><h2>${step===0?"着眼点を確認":"解き方をつなぐ"}</h2><p>${h(steps[step])}</p><textarea rows="4" placeholder="自分の途中式・考え方を記録（任意）"></textarea><p class="muted">途中式の記録欄は自己整理用です。内容を自動採点しません。</p><div class="actions">
       ${step>0?`<button class="secondary" onclick="renderSourceReviewGuide('${sid}',${step-1})">前のSTEP</button>`:""}
@@ -768,12 +769,27 @@ function showHint(sid,q,level){
   else if(level===2)f.innerHTML=`<strong>H2</strong> ${h(q.hint2)} <div class="actions"><button class="secondary" onclick="showHint('${sid}',qById('${q.id}'),3)">完全解説</button></div>`;
   else f.innerHTML=`${explanationHtml(q)}<p>独立解答候補: <strong>${h(answerDisplay(q))}</strong></p>`;
 }
+function deriveSourceReviewEvidence(s,g){
+  if(!sourceReviewSession(s)||g.reviewRequired)return null;
+  const previous=s.flow.guidedByProblemId?.[s.problemId]||{};
+  return CanonicalLearningFlow.deriveCanonicalGuidedFinal({
+    currentMastery:previous.mastery||"unseen",correct:g.correct===true,mode:"retry",
+    finalAnswerSeen:(s.hintLevel||0)>=3,
+    stepHintLevels:(s.hintEvents||[]).map(event=>event.level),
+    reproductionAttempts:previous.reproductionAttempts||0,
+    reproductionSucceeded:previous.reproductionSucceeded||false,
+    independentSucceeded:previous.independentSucceeded||false
+  });
+}
 function submitPractice(sid,q){
   const s=AppStorage.session(sid);if(!s)return;
   const ans=readAnswer(q),g=MathScoring.grade(q,ans),now=new Date().toISOString();s.answerDraft=ans;s.activeMs=stopTimer();
   const eligible=cleanTransferEligible(q)&&["transfer","evaluation"].includes(s.mode);
+  const guidedEvidence=deriveSourceReviewEvidence(s,g);
+  if(guidedEvidence){s.flow.guidedByProblemId={...(s.flow.guidedByProblemId||{}),[s.problemId]:guidedEvidence};}
+  const qualifiesForSet=g.correct===true&&!g.reviewRequired&&(s.retryCount||0)===0&&(s.hintLevel||0)===0&&!(s.hintEvents||[]).some(event=>event.level>0);
   recordAttempt(q,ans,g,{startedAt:s.startedAt,activeDurationMs:s.activeMs,hintEvents:[...s.hintEvents],retryCount:s.retryCount,mode:s.mode,
-    exposureBefore:s.exposureBefore,transferEligible:eligible,sessionId:sid});
+    exposureBefore:s.exposureBefore,transferEligible:eligible,sessionId:sid,guidedEvidence});
   AppStorage.setExposure(q.id,"practiced");const f=document.getElementById("feedback");
   if(g.reviewRequired){
     s.status="finished";AppStorage.setSession(sid,s);f.className="warn";
@@ -788,9 +804,10 @@ function submitPractice(sid,q){
       const rq=retentionCandidateFor(q);
       AppStorage.scheduleReview(rq?.id||q.id,rq?.primarySkill||q.primarySkill,true,prior);
     }
-    if(s.flow?.type==="weakness-set")applyWeaknessSetResult(s,problemIdOf(q),true);
+    if(s.flow?.type==="weakness-set")applyWeaknessSetResult(s,problemIdOf(q),qualifiesForSet);
     s.problemCompleted=true;s.status=s.flow?.problemIds?"active":"finished";AppStorage.setSession(sid,s);
-    f.className="ok";f.innerHTML=`正解。${explanationHtml(q)}<div class="actions"><button onclick="finishPractice('${sid}',true)">次のおすすめ</button><button class="secondary" onclick="finishPractice('${sid}',false)">終了</button></div>`;
+    const evidenceMessage=guidedEvidence?.mastery==="reproduced"?"解説後の自力再現に成功しました。初見の自力正解とは分けて記録します。":guidedEvidence?.mastery==="independent"?"ヒントなしで自力正解しました。":s.flow?.type==="weakness-set"&&!qualifiesForSet?"正解です。ヒント使用または解き直しのため、セット完了には数えず、後でもう一度自力で確認します。":"正解。";
+    f.className="ok";f.innerHTML=`${evidenceMessage}${explanationHtml(q)}<div class="actions"><button onclick="finishPractice('${sid}',true)">次のおすすめ</button><button class="secondary" onclick="finishPractice('${sid}',false)">終了</button></div>`;
     document.getElementById("submitPractice").disabled=true;const hintButton=document.getElementById("hint1Btn");if(hintButton)hintButton.disabled=true;return;
   }
   AppStorage.scheduleReview(q.id,q.primarySkill,false);if(s.flow?.type==="weakness-set")applyWeaknessSetResult(s,problemIdOf(q),false);s.retryCount++;s.activeMs=0;s.startedAt=now;AppStorage.setSession(sid,s);

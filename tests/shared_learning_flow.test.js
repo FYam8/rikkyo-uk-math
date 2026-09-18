@@ -30,3 +30,9 @@ assert.equal(flow.nextCanonicalSequenceIndex(1,3),2);
 assert.equal(flow.nextCanonicalSequenceIndex(2,3),-1);
 assert.equal(flow.clampCanonicalStepIndex(99,3),2);
 console.log('PASS shared learning flow: guided steps and fixed-set retry use canonical runtime');
+
+const baseEvidence={currentMastery:'unseen',correct:true,mode:'retry',finalAnswerSeen:false,stepHintLevels:[],reproductionAttempts:0,reproductionSucceeded:false,independentSucceeded:false};
+assert.equal(flow.deriveCanonicalGuidedFinal(baseEvidence).mastery,'independent');
+assert.equal(flow.deriveCanonicalGuidedFinal({...baseEvidence,finalAnswerSeen:true}).mastery,'reproduced');
+assert.equal(flow.deriveCanonicalGuidedFinal({...baseEvidence,stepHintLevels:[1]}).mastery,'guided');
+assert.equal(flow.deriveCanonicalGuidedFinal({...baseEvidence,correct:false}).mastery,'attempted');
