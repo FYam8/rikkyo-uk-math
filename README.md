@@ -1,7 +1,7 @@
 # 立教英国学院 数学 — Canonical Engine Candidate
 
 Canonical engine source is pinned in `engine-source.json` at WaseShibu main
-`0df2acee51595fa4fd20fe7bcac89610da04e7b7`. The original RC2
+`8c66bb6859646759bbe30b47f1218ef0e720626d`. The original RC2
 files remain authoritative migration input and audit evidence; deployment
 generates the one-to-one normalized `data/canonical_content.json` runtime
 package deterministically.
@@ -65,6 +65,9 @@ FY26A Q5(3)は、D=Cも形式的に等積条件を満たすため `REVIEW_REQUIR
 - `node tests/canonical_content.test.js`
 - `node tests/canonical_migration.test.js`
 - `node tests/holdout_isolation.test.js`
+- `node tests/shared_today_planner.test.js`
+- `node tests/shared_learning_flow.test.js`
+- `node tests/shared_engine_ownership.test.js`
 - `node scripts/run-regression.mjs` (release gate)
 - `node tests/release_invariants.test.js`
 - `python tests/source_page_verify.py`
