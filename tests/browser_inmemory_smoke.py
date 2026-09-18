@@ -31,6 +31,7 @@ with sync_playwright() as p:
     }""",[canonical,registry])
     page.add_script_tag(path=str(root/"src/engine/todayPlanner.runtime.js"))
     page.add_script_tag(path=str(root/"src/engine/learningFlow.runtime.js"))
+    page.add_script_tag(path=str(root/"src/engine/mathInput.runtime.js"))
     page.add_script_tag(path=str(root/"src/schools/rikkyo/appProfile.js"))
     page.add_script_tag(path=str(root/"scoring.js"))
     page.add_script_tag(path=str(root/"storage.js"))
@@ -225,6 +226,20 @@ with sync_playwright() as p:
     inp=page.locator('[data-slot="value"]').first
     page.locator('[data-math-key="/"]').click()
     assert inp.input_value()=="/"
+    inp.fill("")
+    page.get_by_role("button",name="√",exact=True).click()
+    assert inp.evaluate("e=>[e.value,e.selectionStart]")==["√()",2]
+    inp.press("2")
+    assert inp.input_value()=="√(2)"
+    inp.fill("0y32");inp.press("Home");inp.press("ArrowRight")
+    page.get_by_role("button",name="≦",exact=True).click()
+    inp.press("ArrowRight");page.get_by_role("button",name="≦",exact=True).click()
+    assert inp.input_value()=="0≦y≦32"
+    inp.press("Home");inp.press("ArrowRight");inp.press("Shift+ArrowRight")
+    page.get_by_role("button",name="⌫",exact=True).click()
+    assert inp.input_value()=="0y≦32"
+    page.get_by_role("button",name="クリア",exact=True).click()
+    assert inp.input_value()==""
     inp.fill("999999")
     page.get_by_role("button",name=re.compile("採点")).click()
     page.wait_for_timeout(50)

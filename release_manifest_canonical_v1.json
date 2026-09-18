@@ -3,7 +3,7 @@
   "rollbackBaseline": "3ea62c69bf8c77a5f3c703b10bf2c60012ef3268",
   "sourceEngine": {
     "repository": "FYam8/waseshibu-math",
-    "commit": "8c66bb6859646759bbe30b47f1218ef0e720626d",
+    "commit": "2f0a5c227ec1c31f3d0f093eb683d200443a4ac7",
     "contractVersion": 1
   },
   "invariants": {
@@ -65,9 +65,9 @@
   ],
   "fileChecksums": {
     "release_manifest.json": "30f0d3f8b5944d0875512e82dc169c945e4c9f05cfd6985e1c4bae4f6a605648",
-    "index.html": "bde4e422dff4333348451140977d2588cc20ab8c34619eec9245f087fe4e11c1",
+    "index.html": "eabf47a7e482b446f539713b8ea49377031bef8bed39fe799ad29b0eeb6ba2ef",
     "styles.css": "ffe8903dbc36aa0a513986f62ce8bc67bc09de980315c2a379dd3b29bd87bc64",
-    "app.js": "479942cff834c0b39924e0217de152a7207bfa3916d0bef247a496d7e63cd7e9",
+    "app.js": "b95ae77f8c2c0cb311bcb1d24884c41b5b745e4a579bdd2b4e2cf3a56ffafcac",
     "storage.js": "5238055d74a216335435a25a6db45277b35b8787fbdbdacdc425fb4a18b13c5b",
     "scoring.js": "3006d27a909b44da82d5c4a5f39cc1358eeb9a38eedb997a82655092e7820ecf",
     "src/schools/rikkyo/appProfile.js": "12097171432caed1cbcfe3c8b9b212ba452374536021da0b352360457d1d93f6",
@@ -76,7 +76,7 @@
     "data/exams.json": "c50d6d5fa1e76d8de2e01b46c1c3ec4ecd384e8a10948575b3848a867ff122ed",
     "data/registry.json": "3fe41e43f2ee24e66435e9876d658858b7671be489e96c5d7e54d54dcbf3b107",
     "data/canonical_content.json": "76601f8a63cadfde6b564d65a3121dd8dffc98b43a2095a6e6b0e5d47d80cc30",
-    "engine-source.json": "b077c0c1c724159e45429eb42d2b2e584a9a1d5acc84944823f276bdb72df60b",
+    "engine-source.json": "e33d3817eea6a9c9e6c378f642f98fcb2cadf67f5fe545add552395dad969b1d",
     "src/engine/appProfile.ts": "ba110363f705419f30d87a61a6251abe043de0ecb9f201f21a687cc883da5748",
     "src/engine/candidateWriteContract.ts": "49679bff719727d09b67213f3e3328f5ea7ea8d43a1d2a6267defe1b82723771",
     "src/engine/contentContract.ts": "0197681b199cf25dddca50a5a201b67160e45311cb358f7ed743281046e2dc96",
@@ -91,6 +91,8 @@
     "src/engine/remediationContract.ts": "1f013bd8a53e3ed121f067ce1df701b629396fb6b6ce4d89cdd83c4005da2cc8",
     "src/engine/todayPlanner.ts": "746497f62b7975fe4746f0f09275447fbbb873920bba1a07419831e42c204796",
     "src/engine/todayPlanner.runtime.js": "b17a7639ec01de7d5a94e2a94fd4196b470c1d96df1c9b56b4a01574e37dd9c8",
+    "src/engine/mathInput.ts": "180cb4863d343ffab0f5834d028883e2cd4799b65ee000db47e07024c668b07c",
+    "src/engine/mathInput.runtime.js": "14bba41d75e71afd64935cf66c007d50ccf5bd01f11652e44886dd6e097a6042",
     "assets/source-pages/R24-MATH-A-p3.jpg": "788663c6602609fed80ff584f38274a7eb83314a79c343b40cd33efa47b3f7ed",
     "assets/source-pages/R24-MATH-A-p4.jpg": "21de68bdf282cb45d5ed5e1b52f59943e026af9b4d06cd0e0e6ad2185958dc19",
     "assets/source-pages/R24-MATH-A-p5.jpg": "8cd765ff603fd256de1c6ddbf72e3768fbbb503429a1fc1ea3d1baf23b1c0577",

@@ -1,6 +1,6 @@
 # 共通エンジン利用監査
 
-監査基準: WaseShibu canonical master `8c66bb6859646759bbe30b47f1218ef0e720626d`
+監査基準: WaseShibu canonical master `2f0a5c227ec1c31f3d0f093eb683d200443a4ac7`
 
 ## 結論
 
@@ -59,3 +59,7 @@
 立教の文章解説を変更せず、`guided`/`unclear` の自己評価を `canAdvanceCanonicalGuidedStep` に渡す。「まだ分からない」または未選択では次へ進むボタンを無効化する。直接STEPを選ぶ操作は早稲田と同じく許可する。
 
 途中式メモ・自己評価・表示位置を既存sessionの問題別 `stepProgressByProblemId` に追加保存する。中断後は同じ位置を開く。旧sessionはフィールドがなくても従来どおり開ける。メモは表示時にエスケープする。
+
+## 数式入力の共通化
+
+`mathInput` のキー定義・挿入・選択範囲の置換・削除・括弧内カーソルを共通runtimeから利用する。DOM描画と既存採点は学校側に残る。React部品全体や採点全体の共通化とは区別する。早稲田の過去問専用dock入力も現時点では別実装であり、次の抽出対象。
