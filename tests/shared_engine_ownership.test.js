@@ -15,7 +15,7 @@ assert.ok(pin.files['src/engine/todayPlanner.ts']);
 assert.ok(pin.files['src/engine/todayPlanner.runtime.js']);
 assert.ok(pin.files['src/engine/learningFlow.ts']);
 assert.ok(pin.files['src/engine/learningFlow.runtime.js']);
-assert.match(app,/CanonicalTodayPlanner\.orderCanonicalTodayCandidates\(candidates\)/);
+assert.match(app,/CanonicalTodayPlanner\.uniqueCanonicalTodayCandidates\(candidates,value=>value.id\)/);
 assert.match(app,/CanonicalTodayPlanner\.nextIncompleteRouteId\(PROFILE\.pastPaperRouteExamIds,completed\)/);
 assert.match(app,/CanonicalLearningFlow\.reconcileCanonicalFixedSet/);
 assert.match(app,/CanonicalLearningFlow\.applyCanonicalFixedSetResult/);

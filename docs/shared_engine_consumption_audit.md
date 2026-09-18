@@ -1,6 +1,6 @@
 # 共通エンジン利用監査
 
-監査基準: WaseShibu canonical master `2f0a5c227ec1c31f3d0f093eb683d200443a4ac7`
+監査基準: WaseShibu canonical master `801791fc8e45862e946d920255d67b90d4f273ff`
 
 ## 結論
 
@@ -63,3 +63,9 @@
 ## 数式入力の共通化
 
 `mathInput` のキー定義・挿入・選択範囲の置換・削除・括弧内カーソルを共通runtimeから利用する。DOM描画と既存採点は学校側に残る。React部品全体や採点全体の共通化とは区別する。早稲田の過去問専用dock入力も現時点では別実装であり、次の抽出対象。
+
+## 日次計画の前提となる課題identity
+
+過去問開始と再開を同じexamId由来の課題に対応付け、共通 `uniqueCanonicalTodayCandidates` で優先度の高い再開操作を1件だけ表示する。補強は明示的sourceSessionId、復習はreviewItemId、固定セットはsessionIdを使う。セッションや履歴の書き換えはしない。
+
+日次計画の固定保存はまだ未接続。候補から消えたことを完了根拠にしてはならない。学校別の完了証拠、目標変更、先取りと当日計画の衝突、backup/importの保存契約を検証してから接続する。

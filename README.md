@@ -1,7 +1,7 @@
 # 立教英国学院 数学 — Canonical Engine Candidate
 
 Canonical engine source is pinned in `engine-source.json` at WaseShibu main
-`2f0a5c227ec1c31f3d0f093eb683d200443a4ac7`. The original RC2
+`801791fc8e45862e946d920255d67b90d4f273ff`. The original RC2
 files remain authoritative migration input and audit evidence; deployment
 generates the one-to-one normalized `data/canonical_content.json` runtime
 package deterministically.

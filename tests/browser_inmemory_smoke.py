@@ -75,6 +75,10 @@ with sync_playwright() as p:
     page.evaluate("render('home')")
     page.get_by_role("button",name="過去問を始める").click()
     assert "STEP 過去問を解く" in page.locator("#app").inner_text()
+    frozen_before=page.evaluate("JSON.stringify(AppStorage.get())")
+    exam_rows=page.evaluate("canonicalTodayQueue().filter(x=>x.id==='paper:R25-MATH-A')")
+    assert len(exam_rows)==1 and exam_rows[0]['button']=='途中から再開'
+    assert page.evaluate("JSON.stringify(AppStorage.get())")==frozen_before
     assert page.locator(".exam-workspace").count()==1
     assert page.locator(".answer-dock").count()==1
     assert page.locator(".major-tabs button").count()>1

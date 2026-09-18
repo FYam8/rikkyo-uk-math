@@ -52,3 +52,14 @@ export function nextIncompleteRouteId(
   const completed = completedIds instanceof Set ? completedIds : new Set(completedIds)
   return orderedIds.find(id => !completed.has(id)) ?? null
 }
+
+/** Keep the highest-priority action for each school-supplied logical task identity. */
+export function uniqueCanonicalTodayCandidates<T>(candidates:readonly CanonicalTodayCandidate<T>[],taskId:(value:T)=>string):CanonicalTodayCandidate<T>[] {
+  const seen=new Set<string>()
+  return orderCanonicalTodayCandidates(candidates).filter(candidate=>{
+    const id=taskId(candidate.value)
+    if(!id)throw new Error('logical task identity is required')
+    if(seen.has(id))return false
+    seen.add(id);return true
+  })
+}
