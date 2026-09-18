@@ -313,7 +313,7 @@ function bindDraftSaver(q,cb,answerFor=""){
   answerInputs(answerFor).forEach(x=>x.addEventListener("input",()=>cb(readAnswer(q,answerFor))));
 }
 function mathKeypad(){
-  const keys=[["分数","/"],["√","√()"],["x²","^2"],["( )","()"],["−","-"],["±","±"],["π","π"],["比",":"],[",",","],["≦","≦"],["≧","≧"],["＜","<"],["＞",">"],["＝","="]];
+  const keys=CanonicalMathInput.canonicalMathKeys.map(({label,text})=>[label,text]);
   return `<p class="math-help">分数は /、累乗は ^、複数解はカンマで入力できます。</p><div class="math-keypad" aria-label="数式入力補助">${keys.map(([label,value])=>`<button type="button" data-math-key="${h(value)}">${h(label)}</button>`).join("")}<button type="button" data-math-action="backspace">⌫</button><button type="button" data-math-action="clear">クリア</button></div>`;
 }
 function bindMathKeypad(){
@@ -322,11 +322,12 @@ function bindMathKeypad(){
   document.querySelectorAll("[data-math-key],[data-math-action]").forEach(button=>button.addEventListener("pointerdown",event=>event.preventDefault()));
   document.querySelectorAll("[data-math-key]").forEach(button=>button.onclick=()=>{
     if(!focused)return;const start=focused.selectionStart??focused.value.length,end=focused.selectionEnd??start,value=button.dataset.mathKey;
-    focused.value=focused.value.slice(0,start)+value+focused.value.slice(end);focused.focus();focused.setSelectionRange(start+value.length,start+value.length);focused.dispatchEvent(new Event("input",{bubbles:true}));
+    const edit=CanonicalMathInput.insertCanonicalMathText(focused.value,{start,end},value);
+    focused.value=edit.value;focused.focus();focused.setSelectionRange(edit.position,edit.position);focused.dispatchEvent(new Event("input",{bubbles:true}));
   });
   document.querySelector('[data-math-action="backspace"]')?.addEventListener("click",()=>{
-    if(!focused)return;const start=focused.selectionStart??focused.value.length,end=focused.selectionEnd??start,from=start===end?Math.max(0,start-1):start;
-    focused.value=focused.value.slice(0,from)+focused.value.slice(end);focused.focus();focused.setSelectionRange(from,from);focused.dispatchEvent(new Event("input",{bubbles:true}));
+    if(!focused)return;const start=focused.selectionStart??focused.value.length,end=focused.selectionEnd??start;const edit=CanonicalMathInput.deleteCanonicalMathText(focused.value,{start,end});
+    focused.value=edit.value;focused.focus();focused.setSelectionRange(edit.position,edit.position);focused.dispatchEvent(new Event("input",{bubbles:true}));
   });
   document.querySelector('[data-math-action="clear"]')?.addEventListener("click",()=>{if(focused){focused.value="";focused.focus();focused.dispatchEvent(new Event("input",{bubbles:true}));}});
 }

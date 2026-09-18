@@ -30,3 +30,5 @@ assert.doesNotMatch(app,/localStorage\.(?:setItem|getItem)\(["'`]waseshibu-math/
 assert.match(audit,/まだ共通化されていない実行ロジック/);
 assert.match(audit,/学習エンジン全体が共通化済みとは判定しない/);
 console.log('PASS shared engine ownership: consumed core, school boundary, declared extraction gaps');
+
+assert.match(app, /CanonicalMathInput\.insertCanonicalMathText/);

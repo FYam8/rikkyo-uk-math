@@ -1,6 +1,6 @@
 {
   "masterRepository": "FYam8/waseshibu-math",
-  "masterCommit": "8c66bb6859646759bbe30b47f1218ef0e720626d",
+  "masterCommit": "2f0a5c227ec1c31f3d0f093eb683d200443a4ac7",
   "contractVersion": 1,
   "propagation": "vendored-pinned-candidate-only",
   "schoolOwnedPathsExcluded": [
@@ -24,6 +24,8 @@
     "src/engine/practiceHistoryContract.ts": "f4cf3bf34470c85413fa4df7fa7c31048cc090aa18106c122843f70587bc44ef",
     "src/engine/remediationContract.ts": "1f013bd8a53e3ed121f067ce1df701b629396fb6b6ce4d89cdd83c4005da2cc8",
     "src/engine/todayPlanner.ts": "746497f62b7975fe4746f0f09275447fbbb873920bba1a07419831e42c204796",
-    "src/engine/todayPlanner.runtime.js": "b17a7639ec01de7d5a94e2a94fd4196b470c1d96df1c9b56b4a01574e37dd9c8"
+    "src/engine/todayPlanner.runtime.js": "b17a7639ec01de7d5a94e2a94fd4196b470c1d96df1c9b56b4a01574e37dd9c8",
+    "src/engine/mathInput.ts": "180cb4863d343ffab0f5834d028883e2cd4799b65ee000db47e07024c668b07c",
+    "src/engine/mathInput.runtime.js": "14bba41d75e71afd64935cf66c007d50ccf5bd01f11652e44886dd6e097a6042"
   }
 }
