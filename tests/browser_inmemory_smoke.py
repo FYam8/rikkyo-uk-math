@@ -128,6 +128,9 @@ with sync_playwright() as p:
     page.locator('[data-slot="value"]').fill("-1")
     page.get_by_role("button",name=re.compile("採点")).click()
     assert page.evaluate("AppStorage.session('reinforce-flow-source').status")=="active"
+    assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.guidedByProblemId['R24-MATH-A-Q1-1'].mastery")=="reproduced"
+    assert page.evaluate("AppStorage.get().attempts.at(-1).guidedEvidence.mastery")=="reproduced"
+
     page.get_by_role("button",name="次のおすすめ").click()
     assert page.evaluate("AppStorage.session('reinforce-flow-source').flow.index")==1
     assert page.evaluate("qById(AppStorage.session('reinforce-flow-source').problemId).sourceType")=="FIXED_PRACTICE"
@@ -180,6 +183,15 @@ with sync_playwright() as p:
     page.locator('[data-slot="value"]').first.fill(weakness_expected)
     page.get_by_role("button",name=re.compile("採点")).click()
     assert page.evaluate("sid=>AppStorage.session(sid).flow.completedQuestionIds.length",weakness_sid)==1
+    page.get_by_role("button",name="次のおすすめ").click()
+    page.get_by_role("button",name="ヒント",exact=True).click()
+    hinted_id=page.evaluate("sid=>AppStorage.session(sid).problemId",weakness_sid)
+    hinted_expected=page.evaluate("id=>String(qById(id).answerCandidate??qById(id).answerSpec.expected)",hinted_id)
+    page.locator('[data-slot="value"]').first.fill(hinted_expected)
+    page.get_by_role("button",name="採点する",exact=True).click()
+    assert "セット完了には数えず" in page.locator("#feedback").inner_text()
+    assert page.evaluate("sid=>AppStorage.session(sid).flow.completedQuestionIds.length",weakness_sid)==1
+    assert page.evaluate("([sid,id])=>AppStorage.session(sid).flow.retryProblemIds.includes(id)",[weakness_sid,hinted_id])
     page.evaluate("sid=>{const s=AppStorage.session(sid);s.status='finished';AppStorage.setSession(sid,s);render('practice')}",weakness_sid)
 
     # Optional direct-bank practice remains available behind the secondary
