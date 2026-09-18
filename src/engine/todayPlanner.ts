@@ -52,4 +52,3 @@ export function nextIncompleteRouteId(
   const completed = completedIds instanceof Set ? completedIds : new Set(completedIds)
   return orderedIds.find(id => !completed.has(id)) ?? null
 }
-

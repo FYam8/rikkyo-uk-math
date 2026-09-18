@@ -1,6 +1,6 @@
 {
   "masterRepository": "FYam8/waseshibu-math",
-  "masterCommit": "0df2acee51595fa4fd20fe7bcac89610da04e7b7",
+  "masterCommit": "8c66bb6859646759bbe30b47f1218ef0e720626d",
   "contractVersion": 1,
   "propagation": "vendored-pinned-candidate-only",
   "schoolOwnedPathsExcluded": [
@@ -18,10 +18,12 @@
     "src/engine/externalSyncContract.ts": "06b721a654e1e8834fb29f2c09f99767ad9f7c8f957989405b5f74a35a41bf03",
     "src/engine/learnerState.ts": "62a500b729b8a9c877ab08dc96f47dee164ab361c69617cd1e0181080b20f91a",
     "src/engine/localRestoreContract.ts": "362d6423d320663afb2ba2c3478361272b95d505c8b2b0a8f622b7b295ca5340",
+    "src/engine/learningFlow.ts": "af014751655517401d832d74d1b12bc63697cf249de517bcbb2e458e16ca6fc9",
+    "src/engine/learningFlow.runtime.js": "bd04287364f58b73310189316e47dfd08a35021069fff19f42f6ce71fca080de",
     "src/engine/noLossTransport.ts": "0db83ca0adc7fa7c31d45e64104a1aadd969f9fe0ab00934a340cb080cd1b378",
     "src/engine/practiceHistoryContract.ts": "f4cf3bf34470c85413fa4df7fa7c31048cc090aa18106c122843f70587bc44ef",
     "src/engine/remediationContract.ts": "1f013bd8a53e3ed121f067ce1df701b629396fb6b6ce4d89cdd83c4005da2cc8",
-    "src/engine/todayPlanner.ts": "25303b9565fa7eed4ecff4439c441a656a81551ef2015f4b4c7a944f34ecab83",
-    "src/engine/todayPlanner.runtime.js": "ebbcd6db832455ba5065459636176557518f72957682f52ffcb8e2990817dec4"
+    "src/engine/todayPlanner.ts": "746497f62b7975fe4746f0f09275447fbbb873920bba1a07419831e42c204796",
+    "src/engine/todayPlanner.runtime.js": "b17a7639ec01de7d5a94e2a94fd4196b470c1d96df1c9b56b4a01574e37dd9c8"
   }
 }
