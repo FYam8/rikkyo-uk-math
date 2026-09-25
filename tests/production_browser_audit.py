@@ -86,6 +86,14 @@ def run(browser,base,width,out):
         if major==1: page.locator('[data-answer-for="R25-MATH-A-Q1-1"][data-slot="value"]').fill('999')
         for img in page.locator('.exam-images img').all():
             expect(img).to_be_visible(); assert img.evaluate('i=>i.complete&&i.naturalWidth>0')
+            assert img.evaluate("i=>i.parentElement.tagName==='A'&&i.parentElement.href===i.src&&i.parentElement.target==='_blank'")
+    page.locator('.answer-dock-toggle').click()
+    with page.expect_popup() as enlarged:
+        page.get_by_text('原本画像を拡大（別タブ）',exact=True).first.click()
+    popup=enlarged.value;popup.wait_for_load_state()
+    assert popup.locator('img').evaluate('i=>i.complete&&i.naturalWidth>390')
+    popup.close()
+    page.locator('.answer-dock-toggle').click()
     page.get_by_role('button',name='解答を終了して自動採点',exact=True).click()
     source=state(page)['sessionsById']['diag-R25-MATH-A-full-v3']
     assert sum(r['correct'] is True for r in source['results'])==44
