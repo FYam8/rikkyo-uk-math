@@ -1,0 +1,29 @@
+{
+  "version": "v1.0.0",
+  "status": "PRODUCTION RELEASE APPROVED",
+  "auditedRuntimeCommit": "e61437bb8ba67a3f2fe66180f0ef53585482aafa",
+  "canonicalManifestSha256": "8f810b6fb509c7defd5f0d2e920fd18f394dd0c7a193c829f117fd26e77ecb26",
+  "rc2BaselineSha256": "30f0d3f8b5944d0875512e82dc169c945e4c9f05cfd6985e1c4bae4f6a605648",
+  "engineCommit": "801791fc8e45862e946d920255d67b90d4f273ff",
+  "productionUrl": "https://fyam8.github.io/rikkyo-uk-math/",
+  "searchIndexing": false,
+  "unofficialLearningEdition": true,
+  "cleanRounds": 2,
+  "verifyRunId": 36180530891,
+  "pagesAndCleanRoundsRunId": 36180530820,
+  "invariants": {
+    "pastQuestions": 212,
+    "authoredExplanations": 212,
+    "practiceBank": 411,
+    "L1": 100,
+    "L2": 168,
+    "Transfer": 77,
+    "Retention": 66,
+    "problemIds": 623,
+    "sourcePages": 31,
+    "ambiguityId": "R26-MATH-A-Q5-3",
+    "ambiguityStatus": "REVIEW_REQUIRED",
+    "FY26B": "learner-unseen evaluation"
+  },
+  "finalTagPolicy": "Tag the exact final main only after its Verify and Pages workflows, including both post-deploy audit rounds, succeed."
+}

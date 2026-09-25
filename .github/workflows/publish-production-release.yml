@@ -1,0 +1,54 @@
+name: Publish verified production release
+
+on:
+  workflow_run:
+    workflows: [Deploy GitHub Pages]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Publish only the exact verified main
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const crypto = require('crypto');
+            const repo = context.repo;
+            const sha = context.payload.workflow_run.head_sha;
+            const release = JSON.parse(fs.readFileSync('release.json', 'utf8'));
+            if (release.status !== 'PRODUCTION RELEASE APPROVED' || release.version !== 'v1.0.0') throw new Error('Release is not approved');
+            const digest = crypto.createHash('sha256').update(fs.readFileSync('release_manifest_canonical_v1.json')).digest('hex');
+            if (digest !== release.canonicalManifestSha256) throw new Error('Audited runtime changed');
+            const main = await github.rest.repos.getBranch({...repo, branch: 'main'});
+            if (main.data.commit.sha !== sha) throw new Error('Main advanced; audit the new head first');
+            const runs = await github.rest.actions.listWorkflowRuns({...repo, workflow_id: 'verify.yml', head_sha: sha, event: 'push', per_page: 20});
+            const verify = runs.data.workflow_runs.find(r => r.head_sha === sha && r.status === 'completed' && r.conclusion === 'success');
+            if (!verify) throw new Error('Exact main verification has not succeeded');
+            let tag;
+            try { tag = await github.rest.git.getRef({...repo, ref: 'tags/v1.0.0'}); }
+            catch (error) { if (error.status !== 404) throw error; }
+            if (tag && tag.data.object.sha !== sha) throw new Error('Existing tag points elsewhere; never move it');
+            if (!tag) await github.rest.git.createRef({...repo, ref: 'refs/tags/v1.0.0', sha});
+            let existing;
+            try { existing = await github.rest.repos.getReleaseByTag({...repo, tag: 'v1.0.0'}); }
+            catch (error) { if (error.status !== 404) throw error; }
+            if (!existing) await github.rest.repos.createRelease({
+              ...repo, tag_name: 'v1.0.0', target_commitish: sha,
+              name: 'v1.0.0 — 立教英国学院 数学 Production Release',
+              draft: false, prerelease: false,
+              body: fs.readFileSync('docs/production-release.md', 'utf8') +
+                `\n\nFinal main: \`${sha}\`\nVerify: ${verify.html_url}\nPages and two CLEAN rounds: ${context.payload.workflow_run.html_url}\n`
+            });
+            core.info(`Production release v1.0.0 points to verified main ${sha}`);
