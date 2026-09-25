@@ -1,4 +1,4 @@
-# 立教英国学院 数学 — Canonical Engine Candidate
+# 立教英国学院 数学 — Production Release v1.0.0
 
 Canonical engine source is pinned in `engine-source.json` at WaseShibu main
 `801791fc8e45862e946d920255d67b90d4f273ff`. The original RC2
@@ -6,7 +6,9 @@ files remain authoritative migration input and audit evidence; deployment
 generates the one-to-one normalized `data/canonical_content.json` runtime
 package deterministically.
 
-FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0の目標量を満たす固定類題Bank 411問を統合したRelease Candidate。
+FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0の目標量を満たす固定類題Bank 411問を統合したProduction Release（非公式学習版）。
+
+公開判定と監査証跡: [production-release.md](docs/production-release.md) / [release.json](release.json)。検索掲載は行わず、noindexを維持します。
 
 ## 現在のコンテンツ
 - 過去問: **212問**
