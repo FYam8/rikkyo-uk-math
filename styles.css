@@ -90,3 +90,7 @@ pre,code,.prompt-text{overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:460px){
   .grid.three,.grid.four,.filter-grid,.data-grid{grid-template-columns:1fr}
 }
+
+/* Keep the exam selector from squeezing the page title on desktop. */
+.page-head>select{width:20rem;max-width:100%;flex:0 1 20rem}
+@media(max-width:720px){.page-head>select{width:100%;flex:none}}
