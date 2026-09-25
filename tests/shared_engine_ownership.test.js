@@ -32,3 +32,8 @@ assert.match(audit,/学習エンジン全体が共通化済みとは判定しな
 console.log('PASS shared engine ownership: consumed core, school boundary, declared extraction gaps');
 
 assert.match(app, /CanonicalMathInput\.insertCanonicalMathText/);
+
+assert.ok(pin.files['src/engine/mathInput.ts']);
+assert.ok(pin.files['src/engine/mathInput.runtime.js']);
+const syncScript=fs.readFileSync(path.join(root,'scripts','sync-engine.mjs'),'utf8');
+for(const file of Object.keys(pin.files))assert.ok(syncScript.includes("'"+file+"'"),`sync would lose ${file}`);

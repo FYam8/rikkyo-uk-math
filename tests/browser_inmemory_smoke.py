@@ -311,6 +311,25 @@ with sync_playwright() as p:
     assert page.locator("#app img[src='x']").count()==0
     assert page.evaluate("window.__xss") is None
 
+    # Real submitted Transfer evidence: rendering must not erase initial unseen
+    # status; hint/retry/previous exposure/missing legacy evidence fail closed.
+    for control in ['clean','hint','retry','seen','legacy']:
+        page.evaluate("AppStorage.reset()")
+        transfer_id=page.evaluate("BANK.find(q=>q.primarySkill==='CALCULATION'&&q.practiceLevel==='TRANSFER'&&cleanTransferEligible(q)).id")
+        if control=='seen': page.evaluate("id=>AppStorage.setExposure(id,'seen')",transfer_id)
+        page.evaluate("id=>{answerDockOpen=true;openPractice(id,'transfer','')}",transfer_id)
+        if control=='legacy': page.evaluate("()=>{const s=AppStorage.activeSessions()[0];delete s.exposureBefore;AppStorage.setSession(s.sessionId,s)}")
+        if control=='hint': page.locator('#hint1Btn').click()
+        if control=='retry':
+            page.locator('[data-slot="value"]').fill('999999')
+            page.get_by_role('button',name='採点する',exact=True).click()
+        expected=page.evaluate("id=>String(qById(id).answerSpec.expected)",transfer_id)
+        page.locator('[data-slot="value"]').fill(expected)
+        page.get_by_role('button',name='採点する',exact=True).click()
+        latest=page.evaluate("AppStorage.get().attempts.at(-1)")
+        assert latest['correct'] is True,(control,latest)
+        assert latest['transferEligibleAtAttempt']==(control=='clean'),(control,latest)
+
     # Mobile overflow.
     overflow=page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth + 1")
     assert overflow is False
