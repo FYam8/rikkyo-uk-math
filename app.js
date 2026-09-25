@@ -12,6 +12,7 @@ function practiceLevelLabel(id){return presentationLabel("practiceLevels",id,id|
 function familyLabel(id){return presentationLabel("families",id,id);}
 function modeLabel(id){return presentationLabel("modes",id,id);}
 function masteryStateLabel(id){return presentationLabel("masteryStates",id,id);}
+function examRoleLabel(id){return presentationLabel("examRoles",id,"過去問");}
 function exposureLabel(id){return presentationLabel("exposure",id,id);}
 function targetRelevanceLabel(id){return presentationLabel("targetRelevance",id,id);}
 function difficultyLabel(id){return presentationLabel("difficulty",id,id);}
@@ -522,8 +523,8 @@ function renderLibrary(selectedExamId=""){
   const next=nextPastPaperTask(),examId=selectedExamId||next?.examId||EXAMS[0]?.examId,current=examById(examId)||EXAMS[0],questions=examQuestions(current.examId),locked=current.role==="confirmation"&&examExposure("R26-MATH-B")!=="practiced",holdout=current.role==="evaluation"&&examExposure(current.examId)==="unseen",majors=[...new Set(questions.map(q=>q.majorQuestion))];
   const start= current.examId===DIAG_EXAM?`render('diagnostic')`:`startExam('${current.examId}')`;
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">PRACTICE LIBRARY</span><h1>演習ライブラリ</h1></div><select onchange="renderLibrary(this.value)">${EXAMS.map(exam=>`<option value="${h(exam.examId)}" ${exam.examId===current.examId?"selected":""}>${h(exam.label)}</option>`).join("")}</select></div>
-    <div class="notice">過去問はA/Bを別のexamIdとして保存します。現在は<b>${h(targetLabel(AppStorage.get().settings.target||"stable"))}</b>方針。公式小問配点がないため100点換算は行いません。</div>
-    <section class="year-summary card"><strong>${h(current.label)}</strong><span>${h(current.roleLabel)} ・ ${questions.length}小問 ・ ${h(examExposure(current.examId))}</span></section>
+    <div class="notice">A日程・B日程の学習記録はそれぞれ保存されます。現在は<b>${h(targetLabel(AppStorage.get().settings.target||"stable"))}</b>方針。公式小問配点がないため100点換算は行いません。</div>
+    <section class="year-summary card"><strong>${h(current.label)}</strong><span>${h(examRoleLabel(current.role))} ・ ${questions.length}小問 ・ ${h(exposureLabel(examExposure(current.examId)))}</span></section>
     <div class="actions library-actions"><button ${locked?"disabled":""} onclick="${start}">${h(current.label)}を1試験分解く</button><button class="secondary" onclick="render('practice')">弱点別・固定類題を見る</button><button class="secondary" onclick="render('review')">間違いを復習</button></div>
     ${locked?'<section class="card warning-card"><h2>FY26B評価後に開放します</h2><p>別日程での確認を正確に行うため、問題情報も表示しません。</p></section>':holdout?'<section class="card warning-card"><span class="eyebrow">最終・未見評価</span><h2>開始前は問題内容を表示しません</h2><p>FY26Bは最終評価です。事前の練習・ヒント・解説には表示しません。</p></section>':`<section class="card selection-plan"><div class="section-head"><div><span class="eyebrow">問題構成</span><h2>${h(current.label)}の問題構成</h2></div></div><div class="question-list">${majors.map(major=>{const items=questions.filter(q=>q.majorQuestion===major),firstIndex=questions.findIndex(q=>q.majorQuestion===major);return `<article class="question-card"><div class="qtop"><div><span class="qnum">大問 ${h(major)}</span><h3>${items.length}小問</h3></div></div><div class="subqs">${items.map(q=>`<div class="subq"><b>${h(q.label)}</b><span>${h(skillLabel(q.primarySkill))}</span><em class="mini">${h(difficultyLabel(q.difficulty))}</em></div>`).join("")}</div><button class="secondary" onclick="${start};setTimeout(()=>sessionJump('${current.examId===DIAG_EXAM?"diag-R25-MATH-A-full-v3":`exam-${current.examId}-v3`}',${firstIndex}),0)">この大問を開く</button></article>`}).join("")}</div></section>`}`;
 }
@@ -714,7 +715,7 @@ function renderSourceReviewChoice(q,s){
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">元問題を1問ずつ直す</span><h1>${h(title)}</h1><p class="muted">この1問だけに集中し、理解してから固定類題へ進みます。</p></div><button class="secondary" onclick="finishPractice('${s.sessionId}',false)">中断して戻る</button></div>
     <div class="one-question-banner"><b>今はこの1問だけ</b><span>ほかの問題の正答は表示しません。</span><em>${h(skillLabel(q.primarySkill))}</em></div>
     <div class="guided-review-grid"><section class="card guided-problem"><div class="section-head"><div><span class="eyebrow">元問題</span><h2>${h(title)}</h2></div></div>${sourceBlock(q,true)}</section>
-    <section class="card guided-panel"><h2>この1問をどう直しますか？</h2><p class="muted">早稲田版と同じく、理解のしかたを選んでから最後に自力で再現します。</p><div class="guided-choice">
+    <section class="card guided-panel"><h2>この1問をどう直しますか？</h2><p class="muted">理解のしかたを選んでから、最後に自力で解き直します。</p><div class="guided-choice">
       ${steps.length?`<button onclick="renderSourceReviewGuide('${s.sessionId}')">問題専用STEPで理解する</button>`:""}
       <button class="secondary" onclick="renderSourceReviewRetry('${s.sessionId}')">もう一度自力で解く</button>
       <button class="secondary" onclick="renderSourceReviewExplanation('${s.sessionId}')">この1問の答え・解説を見る</button>
@@ -883,7 +884,7 @@ function finishPractice(sid,next){
 function renderExams(){
   const confirmationUnlocked=examExposure("R26-MATH-B")==="practiced";
   app().innerHTML=`<div class="page-head"><div><span class="eyebrow">PAST PAPERS</span><h1>過去問</h1><p class="muted">A/Bを別試験として管理し、最終評価の未見性を保護します。</p></div><button class="secondary" onclick="render('library')">演習一覧へ</button></div><section class="card"><div class="notice">公式制限時間・小問配点は提供資料から確認できていないため、経過時間だけを記録します。</div>
-    ${EXAMS.map(e=>{const exposure=examExposure(e.examId),mate=parallelMateExposed(e),locked=e.role==="confirmation"&&!confirmationUnlocked;return `<div class="card exam-card"><div><strong>${h(e.label)}</strong><p>${h(e.roleLabel)}・${e.questionCount}問・${h(exposureLabel(exposure))}${mate?"・別日程の問題を確認済み":""}</p>${e.role==="evaluation"?'<p class="small warn">最終・未見評価：開始前は練習・ヒント・解説に表示しません。</p>':''}${locked?'<p class="small muted">FY26B評価後に開放します。</p>':''}</div><div class="actions">${e.role==="diagnostic"?`<button onclick="render('diagnostic')">診断</button>`:`<button ${locked?'disabled':''} onclick="startExam('${e.examId}')">本番形式</button>`}${["evaluation","confirmation"].includes(e.role)?'':`<button class="secondary" onclick="practiceExam('${e.examId}')">学習</button>`}</div></div>`}).join("")}</section>`;
+    ${EXAMS.map(e=>{const exposure=examExposure(e.examId),mate=parallelMateExposed(e),locked=e.role==="confirmation"&&!confirmationUnlocked;return `<div class="card exam-card"><div><strong>${h(e.label)}</strong><p>${h(examRoleLabel(e.role))}・${e.questionCount}問・${h(exposureLabel(exposure))}${mate?"・別日程の問題を確認済み":""}</p>${e.role==="evaluation"?'<p class="small warn">最終・未見評価：開始前は練習・ヒント・解説に表示しません。</p>':''}${locked?'<p class="small muted">FY26B評価後に開放します。</p>':''}</div><div class="actions">${e.role==="diagnostic"?`<button onclick="render('diagnostic')">診断</button>`:`<button ${locked?'disabled':''} onclick="startExam('${e.examId}')">本番形式</button>`}${["evaluation","confirmation"].includes(e.role)?'':`<button class="secondary" onclick="practiceExam('${e.examId}')">学習</button>`}</div></div>`}).join("")}</section>`;
 }
 function practiceExam(examId){render("practice");document.getElementById("pfExam").value=examId;renderPracticeList();}
 function startExam(examId){
@@ -901,7 +902,7 @@ function renderExamSession(sid){
   const s=AppStorage.session(sid);if(!s)return render("exams");if(s.status==="finished")return renderSessionResult(s);
   const q=qById(s.problemIds[s.index]),items=sessionMajorItems(s),majors=[...new Set(s.problemIds.map(id=>qById(id)?.majorQuestion))],majorIndex=majors.indexOf(q.majorQuestion);items.forEach(item=>AppStorage.setExposure(problemIdOf(item.q),"seen"));
   const pct=Math.round((majorIndex+1)/majors.length*100),entered=sessionAnsweredCount(s),majorEntered=items.filter(item=>answerProvided(s.answers[problemIdOf(item.q)])).length,exam=examById(s.examId);
-  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">STEP 過去問を解く</span><h1>${h(exam.label)}｜${h(exam.roleLabel)}</h1></div><div><b>入力 <span data-total-entered>${entered}</span>/${s.problemIds.length}</b><button class="text-button" onclick="render('exams')">演習一覧</button></div></div>
+  app().innerHTML=`<div class="exam-compact-head"><div><span class="eyebrow">STEP 過去問を解く</span><h1>${h(exam.label)}｜${h(examRoleLabel(exam.role))}</h1></div><div><b>入力 <span data-total-entered>${entered}</span>/${s.problemIds.length}</b><button class="text-button" onclick="render('exams')">演習一覧</button></div></div>
     ${sessionNavigator(s,sid)}
     <div class="exam-workspace ${answerDockOpen?"answer-open":""}">
       <section class="problem-pane card"><div class="section-head"><div><span class="eyebrow">PROBLEM · EXAM MODE</span><h2>大問${h(q.majorQuestion)}</h2></div><b>${items.length}小問</b></div>
