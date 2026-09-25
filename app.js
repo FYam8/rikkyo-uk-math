@@ -96,8 +96,8 @@ function parallelMateQuestion(q){
   const mate=slot.aQuestionId===problemIdOf(q)?slot.bQuestionId:slot.aQuestionId;
   return qById(mate);
 }
-function cleanTransferEligible(q){
-  if(AppStorage.exposureStatus(problemIdOf(q))!=="unseen")return false;
+function cleanTransferEligible(q,exposureBefore=AppStorage.exposureStatus(problemIdOf(q))){
+  if(exposureBefore!=="unseen")return false;
   if(q.sourceType==="FIXED_PRACTICE"){
     return q.practiceLevel==="TRANSFER" && q.transferEligibleByDesign===true && !(q.nearDuplicateOf||[]).length;
   }
@@ -836,7 +836,7 @@ function deriveSourceReviewEvidence(s,g){
 function submitPractice(sid,q){
   const s=AppStorage.session(sid);if(!s)return;
   const ans=readAnswer(q),g=MathScoring.grade(q,ans),now=new Date().toISOString();s.answerDraft=ans;s.activeMs=stopTimer();
-  const eligible=cleanTransferEligible(q)&&["transfer","evaluation"].includes(s.mode);
+  const eligible=cleanTransferEligible(q,s.exposureBefore||"seen")&&["transfer","evaluation"].includes(s.mode)&&(s.retryCount||0)===0&&(s.hintLevel||0)===0&&!(s.hintEvents||[]).length;
   const guidedEvidence=deriveSourceReviewEvidence(s,g);
   if(guidedEvidence){s.flow.guidedByProblemId={...(s.flow.guidedByProblemId||{}),[s.problemId]:guidedEvidence};}
   const qualifiesForSet=g.correct===true&&!g.reviewRequired&&(s.retryCount||0)===0&&(s.hintLevel||0)===0&&!(s.hintEvents||[]).some(event=>event.level>0);

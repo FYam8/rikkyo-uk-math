@@ -22,3 +22,12 @@ delete bad.checksum;let h=0x811c9dc5,raw=JSON.stringify(bad);for(let i=0;i<raw.l
 let threw=false;try{AppStorage.importJson(JSON.stringify(bad));}catch(e){threw=true;}
 if(!threw)throw new Error("unknown problemId import accepted");
 console.log("PASS storage");
+
+const firstReview=structuredClone(AppStorage.scheduleReview('P1','CALCULATION',true));
+for(let i=0;i<3;i++)AppStorage.scheduleReview('P1','CALCULATION',true);
+const pendingReview=AppStorage.reviewItem(firstReview.reviewItemId);
+if(pendingReview.stage!==0||pendingReview.dueAt!==firstReview.dueAt)throw new Error('unfinished next-day review was postponed by practice');
+AppStorage.setReviewStatus(firstReview.reviewItemId,'done');
+const advanced=AppStorage.scheduleReview('P1','CALCULATION',true,firstReview.stage);
+if(advanced.stage!==1)throw new Error('completed review must advance with explicit prior stage');
+console.log('PASS retention reservation: practice cannot postpone unfinished review');

@@ -53,7 +53,18 @@ window.AppStorage = (() => {
   function setExposure(id,status){const cur=state.exposureByProblemId[id]||{status:"unseen"},final=(exposureRank[status]??0)>(exposureRank[cur.status]??0)?status:cur.status;state.exposureByProblemId[id]={status:final,firstSeenAt:cur.firstSeenAt||now(),lastSeenAt:now()};save();}
   function session(id){return state.sessionsById[id]||null;}function setSession(id,s){state.sessionsById[id]=s;save();}function removeSession(id){delete state.sessionsById[id];save();}
   function activeSessions(){return Object.values(state.sessionsById).filter(s=>s&&s.status==="active"&&(!s.problemId||knownProblemIds.has(s.problemId)||Array.isArray(s.problemIds)));}
-  function scheduleReview(problemId,skill,correct,priorStageOverride=null){const existing=state.reviewItems.find(x=>x.problemId===problemId&&x.status==="pending"),priorStage=priorStageOverride!==null?priorStageOverride:(existing?.stage??-1),nextStage=correct?Math.min(priorStage+1,2):Math.max(priorStage,0),days=correct?[1,3,7][nextStage]:1,item={reviewItemId:existing?.reviewItemId||uuid(),problemId,skill,stage:nextStage,dueAt:new Date(Date.now()+days*86400000).toISOString(),reason:correct?"retention":"weakness",status:"pending",updatedAt:now()};if(existing)Object.assign(existing,item);else state.reviewItems.push(item);save();return item;}
+  function scheduleReview(problemId,skill,correct,priorStageOverride=null){
+    const existing=state.reviewItems.find(x=>x.problemId===problemId&&x.status==="pending");
+    // More practice is not evidence that the pending retention check was done.
+    const pendingAgain=correct&&existing&&priorStageOverride===null;
+    const priorStage=priorStageOverride!==null?priorStageOverride:(existing?.stage??-1);
+    const nextStage=pendingAgain?existing.stage:correct?Math.min(priorStage+1,2):Math.max(priorStage,0);
+    const days=correct?[1,3,7][nextStage]:1;
+    const proposed=Date.now()+days*86400000;
+    const due=pendingAgain?Math.min(Date.parse(existing.dueAt)||proposed,proposed):proposed;
+    const item={reviewItemId:existing?.reviewItemId||uuid(),problemId,skill,stage:nextStage,dueAt:new Date(due).toISOString(),reason:correct?"retention":"weakness",status:"pending",updatedAt:now()};
+    if(existing)Object.assign(existing,item);else state.reviewItems.push(item);save();return item;
+  }
   function reviewItem(id){return state.reviewItems.find(x=>x.reviewItemId===id)||null;}function setReviewStatus(id,status){const r=reviewItem(id);if(r){r.status=status;r.updatedAt=now();save();}return r;}
   function setTarget(targetId){if(["minimum","stable","safe"].includes(targetId)){state.preferences.targetId=targetId;state.preferences.updatedAt=now();save();}}
   function setNickname(value){const nickname=String(value||"").slice(0,80)||null;state.preferences.nickname=nickname;setDeviceMeta({...deviceMeta(),nickname});save();}

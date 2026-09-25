@@ -49,3 +49,16 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Two post-deploy regression and browser audit rounds
+        run: |
+          for round in 1 2; do
+            node scripts/run-regression.mjs
+            python tests/production_browser_audit.py --url "${{ steps.deployment.outputs.page_url }}" --out "/tmp/rikkyo-production-audit-$round"
+          done
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-browser-audit
+          path: /tmp/rikkyo-production-audit-*

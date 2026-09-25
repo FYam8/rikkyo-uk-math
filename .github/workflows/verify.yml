@@ -20,3 +20,14 @@ jobs:
           python -m playwright install --with-deps chromium
       - name: Run full regression
         run: node scripts/run-regression.mjs
+      - name: Audit real HTTP app on desktop and mobile
+        run: |
+          python -m http.server 8765 > /tmp/rikkyo-http.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          python tests/production_browser_audit.py --url http://127.0.0.1:8765 --out /tmp/rikkyo-candidate-audit
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: candidate-browser-audit
+          path: /tmp/rikkyo-candidate-audit

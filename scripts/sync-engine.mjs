@@ -24,7 +24,9 @@ const paths = [
   'src/engine/practiceHistoryContract.ts',
   'src/engine/remediationContract.ts',
   'src/engine/todayPlanner.ts',
-  'src/engine/todayPlanner.runtime.js'
+  'src/engine/todayPlanner.runtime.js',
+  'src/engine/mathInput.ts',
+  'src/engine/mathInput.runtime.js'
 ]
 const files = {}
 for (const path of paths) {
