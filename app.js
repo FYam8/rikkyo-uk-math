@@ -364,7 +364,7 @@ function sessionNavigator(session,sid){
 }
 function majorProblemBlock(items){
   const questions=items.map(item=>item.q),images=[...new Map(questions.filter(q=>q.sourcePageImage).map(q=>[q.sourcePageImage,q])).entries()];
-  if(images.length)return `<p class="muted">本番演習中は、実際の試験と同じように問題ページ全体を表示します。</p><div class="exam-images">${images.map(([src,q])=>`<img src="${h(src)}" alt="${h(q.examId+" 大問"+q.majorQuestion+" 問題ページ")}" loading="eager">`).join("")}</div>`;
+  if(images.length)return `<p class="muted">本番演習中は、実際の試験と同じように問題ページ全体を表示します。</p><div class="exam-images">${images.map(([src,q])=>`<a href="${h(src)}" target="_blank" rel="noopener"><span>原本画像を拡大（別タブ）</span><img src="${h(src)}" alt="${h(q.examId+" 大問"+q.majorQuestion+" 問題ページ")}" loading="eager"></a>`).join("")}</div>`;
   return `<div class="major-prompt-list">${questions.map(q=>`<article><b>${h(q.label)}</b>${q.promptText?`<div class="prompt-text">${h(q.promptText)}</div>`:""}</article>`).join("")}</div>`;
 }
 function bindSessionDrafts(session,sid,items){
