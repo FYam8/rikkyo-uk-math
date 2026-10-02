@@ -1,6 +1,8 @@
 import { spawnSync } from 'node:child_process'
 
 const commands = [
+  ['node', ['scripts/verify-shared-progress.mjs']],
+  ['node', ['tests/progress-cloud.test.mjs']],
   ['node', ['scripts/build-canonical-content.mjs']],
   ['node', ['--check', 'app.js']],
   ['node', ['--check', 'scoring.js']],

@@ -21,7 +21,7 @@ def verify_public_files(base):
         list(pool.map(check,manifest['fileChecksums'].items()))
     with urllib.request.urlopen(base.rstrip('/')+'/',timeout=30) as response:
         assert 'noindex,nofollow,noarchive' in response.read().decode()
-    print('PASS deployed hashes: 60 files; noindex retained',flush=True)
+    print(f"PASS deployed hashes: {len(manifest['fileChecksums'])} files; noindex retained",flush=True)
 
 def state(page):
     return page.evaluate('(key)=>JSON.parse(localStorage.getItem(key))', KEY)
