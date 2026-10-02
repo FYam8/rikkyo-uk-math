@@ -27,7 +27,7 @@
       targetRelevance:{MUST:"最優先",SHOULD:"推奨",DEFER:"後回し"},
       difficulty:{A:"基礎",B:"標準",C:"発展"}
     },
-    runtime:{storageNamespace:"rikkyo-uk-math",canonicalStateKeyPrefix:"rikkyo-uk-math",backupAppId:"rikkyo-uk-math",eventNamespace:"rikkyo-uk-math",updateChannel:"rikkyo-uk-math-updates",progressSync:{enabled:false,indexedDbName:"rikkyo-uk-math-progress-sync",appId:"rikkyo-uk-math",browserApiOverrideKey:"__RIKKYO_UK_MATH_PROGRESS_API__",deploymentApiBase:null}},
+    runtime:{storageNamespace:"rikkyo-uk-math",canonicalStateKeyPrefix:"rikkyo-uk-math",backupAppId:"rikkyo-uk-math",eventNamespace:"rikkyo-uk-math",updateChannel:"rikkyo-uk-math-updates",progressSync:{enabled:true,indexedDbName:"rikkyo-uk-progress-sync",appId:"rikkyo-uk-math",browserApiOverrideKey:"__RIKKYO_UK_MATH_PROGRESS_API__",deploymentApiBase:"https://rikkyo-uk-progress-api.fyam8.workers.dev"}},
     contentPolicy:{officialScoreAvailable:false,scoreAuthority:"not-available",reviewRequiredProblemIds:["R26-MATH-A-Q5-3"],learnerUnseenExamIds:["R26-MATH-B"]}
   };
   root.RIKKYO_MATH_PROFILE=Object.freeze(profile);

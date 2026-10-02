@@ -11,7 +11,7 @@ assert.ok(store['rikkyo-uk-math:test:learner-state:v1']);assert.ok(store['rikkyo
 const points=JSON.parse(store['rikkyo-uk-math:test:restore-points:v1']);assert.equal(points.length,1);assert.equal(points[0].snapshot.legacy,JSON.stringify(legacy));
 assert.equal(AppStorage.activeSessions()[0].sessionId,'resume');assert.equal(AppStorage.get().settings.target,'safe');
 const identities=AppStorage.identities();for(const value of Object.values(identities))assert.ok(!String(value).includes('waseshibu'));
-assert.notEqual(identities.canonicalKey,identities.legacyKey);assert.equal(identities.indexedDbName,'rikkyo-uk-math-progress-sync');
+assert.notEqual(identities.canonicalKey,identities.legacyKey);assert.equal(identities.indexedDbName,'rikkyo-uk-progress-sync');
 const portable=JSON.parse(AppStorage.exportJson());assert.equal(portable.app,'rikkyo-uk-math');assert.equal(portable.backupSchemaVersion,1);assert.ok(!JSON.stringify(portable).includes('rikkyo-uk-math:test:device-id'));assert.equal(portable.learnerState.activityRecords[0].deviceId,'legacy-device');
 const conflict=structuredClone(portable);conflict.learnerState.activityRecords[0].correct=true;delete conflict.checksum;
 const fnv=str=>{let h=0x811c9dc5;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,0x01000193);}return (h>>>0).toString(16).padStart(8,'0')};conflict.checksum='fnv1a:'+fnv(JSON.stringify(conflict));
