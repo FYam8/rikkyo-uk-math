@@ -11,11 +11,11 @@ for(const source of questions){
   assert.ok(sameSkill.some(item=>item.practiceLevel==='L1'),`${source.id}: explicit primarySkill has no L1`);
   assert.ok(sameSkill.some(item=>item.practiceLevel==='L2'),`${source.id}: explicit primarySkill has no L2`);
 }
-assert.deepEqual(unmapped,['R24-MATH-B-Q4-5'],'only the audited mixture word problem may remain without a guessed practice mapping');
+assert.deepEqual(unmapped,[],'every source skill has explicit L1 and L2 practice');
 assert.match(app,/q\.primarySkill===source\.primarySkill&&q\.practiceLevel===level/,'L1/L2 selection must use the explicit primarySkill field');
 assert.match(app,/unmappedSourceProblemIds\.push\(problemIdOf\(source\)\)/,'missing mappings must remain explicit');
 assert.match(app,/stageByProblemId\[problemIdOf\(source\)\]="source-review"/,'the original wrong problem must be corrected before fixed practice');
 assert.match(app,/q\.primarySkill===skill&&q\.practiceLevel==="TRANSFER"&&cleanTransferEligible\(q\)/,'clean transfer must follow same-skill practice without holdout leakage');
 const mappingBody=app.slice(app.indexOf('function buildReinforcementSpec'),app.indexOf('function pendingReinforcementSource'));
 assert.doesNotMatch(mappingBody,/problemIdOf\(source\).*\.(?:split|match)\(/,'generic reinforcement mapping must not parse problemId');
-console.log('PASS reinforcement mapping: 211 explicit-primarySkill mappings + 1 fail-closed source review');
+console.log('PASS reinforcement mapping: 212 explicit-primarySkill mappings including source-reviewed mixture');

@@ -112,7 +112,7 @@ with sync_playwright() as p:
     assert len(flow_spec["mappingBySourceProblemId"]["R24-MATH-A-Q1-1"]["practiceProblemIds"])==2
     assert page.evaluate("(ids)=>ids.every(id=>qById(id).primarySkill==='CALCULATION')",flow_spec["mappingBySourceProblemId"]["R24-MATH-A-Q1-1"]["practiceProblemIds"])
     unmapped=page.evaluate("""()=>buildReinforcementSpec({sessionId:'unmapped-source',examId:'R24-MATH-B',results:[{problemId:'R24-MATH-B-Q4-5',correct:false,reviewRequired:false}]}).unmappedSourceProblemIds""")
-    assert unmapped==["R24-MATH-B-Q4-5"]
+    assert unmapped==[]
     page.evaluate("renderSessionResult(AppStorage.session('flow-source'))")
     assert "過去問" in page.locator(".workflow-strip").inner_text()
     assert "L1/L2" not in page.locator("#app").inner_text()
@@ -329,6 +329,25 @@ with sync_playwright() as p:
         latest=page.evaluate("AppStorage.get().attempts.at(-1)")
         assert latest['correct'] is True,(control,latest)
         assert latest['transferEligibleAtAttempt']==(control=='clean'),(control,latest)
+
+    # Source-reviewed ratio gap now has source -> L1 -> L2 -> unseen transfer.
+    page.evaluate("AppStorage.reset()")
+    ratio_flow=page.evaluate("""()=>buildReinforcementSpec({sessionId:'ratio-source',examId:'R24-MATH-B',results:[{problemId:'R24-MATH-B-Q4-5',correct:false,reviewRequired:false}]})""")
+    assert ratio_flow['unmappedSourceProblemIds']==[]
+    assert list(ratio_flow['stageByProblemId'].values())==['source-review','l1','l2','transfer']
+    assert page.evaluate("ids=>ids.every(id=>qById(id).primarySkill==='WORD_PROBLEM')",ratio_flow['problemIds'])
+    assert not any('RETENTION' in id for id in ratio_flow['problemIds'])
+    for ratio_id in page.evaluate("BANK.filter(q=>q.id.startsWith('PB3-')).map(q=>q.id)"):
+        page.evaluate("AppStorage.reset()")
+        page.evaluate("id=>{answerDockOpen=true;openPractice(id,modeForPractice(qById(id)),'')}",ratio_id)
+        assert '比' in page.locator('#app').inner_text()
+        expected=page.evaluate("id=>String(qById(id).answerSpec.expected)",ratio_id)
+        page.locator('[data-slot="value"]').fill(expected)
+        page.get_by_role('button',name='採点する',exact=True).click()
+        assert page.evaluate("AppStorage.get().attempts.at(-1).correct") is True,ratio_id
+    page.evaluate("AppStorage.reset()")
+    retention=page.evaluate("retentionCandidateFor(qById('PB3-MIXTURE-RATIO-L2-01'))")
+    assert retention['practiceLevel']=='RETENTION' and retention['familyId']=='MIXTURE_RATIO'
 
     # Mobile overflow.
     overflow=page.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth + 1")

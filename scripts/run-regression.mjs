@@ -24,6 +24,7 @@ const commands = [
   ['node', ['tests/release_invariants.test.js']],
   ['node', ['tests/all_explanations.test.js']],
   ['python', ['tests/bank_math_verify.py']],
+  ['python', ['tests/mixture_math_verify.py']],
   ['python', ['tests/fy24a_math_verify.py']],
   ['python', ['tests/fy24b_math_verify.py']],
   ['python', ['tests/fy25a_full_math_verify.py']],

@@ -24228,5 +24228,735 @@
     "officialAnswerVerification": "not_applicable_generated_practice",
     "solutionVerificationStatus": "generator_formula_plus_independent_prompt_recalculation",
     "label": "PROBABILITY_NUMBER_DATA RETENTION 5"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-L1-01",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "L1",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_REQUIRED",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "A",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 160,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 160,
+    "promptText": "ジュースと水を3:2で混ぜます。ジュース240mLを使うとき、水は何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の3に対応します。後の材料はその2/3倍です。\n240×2/3=160mLが必要です。\n必要な量は160mLです。",
+    "explanationSteps": [
+      "先の材料の量は比の3に対応します。後の材料はその2/3倍です。",
+      "240×2/3=160mLが必要です。",
+      "必要な量は160mLです。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-REQUIRED-L1-1",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 L1-1",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-L1-02",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "L1",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_REQUIRED",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "A",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 240,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 240,
+    "promptText": "絵の具と水を4:3で混ぜます。絵の具320mLを使うとき、水は何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の4に対応します。後の材料はその3/4倍です。\n320×3/4=240mLが必要です。\n必要な量は240mLです。",
+    "explanationSteps": [
+      "先の材料の量は比の4に対応します。後の材料はその3/4倍です。",
+      "320×3/4=240mLが必要です。",
+      "必要な量は240mLです。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-REQUIRED-L1-2",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 L1-2",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-L1-03",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "L1",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_REQUIRED",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "A",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 450,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 450,
+    "promptText": "原液と水を2:5で混ぜます。原液180mLを使うとき、水は何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の2に対応します。後の材料はその5/2倍です。\n180×5/2=450mLが必要です。\n必要な量は450mLです。",
+    "explanationSteps": [
+      "先の材料の量は比の2に対応します。後の材料はその5/2倍です。",
+      "180×5/2=450mLが必要です。",
+      "必要な量は450mLです。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-REQUIRED-L1-3",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 L1-3",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-L2-01",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "L2",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_ADD",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 60,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 60,
+    "promptText": "コーヒー350mLと牛乳90mLがあります。コーヒーと牛乳を7:3で混ぜ、コーヒーを全部使います。牛乳はあと何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の7に対応します。後の材料はその3/7倍です。\n350×3/7=150mLが必要です。\n手元の90mLを引き、150−90=60mLを追加します。",
+    "explanationSteps": [
+      "先の材料の量は比の7に対応します。後の材料はその3/7倍です。",
+      "350×3/7=150mLが必要です。",
+      "手元の90mLを引き、150−90=60mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-ADD-L2-1",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 L2-1",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-L2-02",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "L2",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_ADD",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 100,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 100,
+    "promptText": "原液210mLと水250mLがあります。原液と水を3:5で混ぜ、原液を全部使います。水はあと何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の3に対応します。後の材料はその5/3倍です。\n210×5/3=350mLが必要です。\n手元の250mLを引き、350−250=100mLを追加します。",
+    "explanationSteps": [
+      "先の材料の量は比の3に対応します。後の材料はその5/3倍です。",
+      "210×5/3=350mLが必要です。",
+      "手元の250mLを引き、350−250=100mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-ADD-L2-2",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 L2-2",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-L2-03",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "L2",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_ADD",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 150,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 150,
+    "promptText": "ジュース600mLと水300mLがあります。ジュースと水を4:3で混ぜ、ジュースを全部使います。水はあと何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の4に対応します。後の材料はその3/4倍です。\n600×3/4=450mLが必要です。\n手元の300mLを引き、450−300=150mLを追加します。",
+    "explanationSteps": [
+      "先の材料の量は比の4に対応します。後の材料はその3/4倍です。",
+      "600×3/4=450mLが必要です。",
+      "手元の300mLを引き、450−300=150mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-ADD-L2-3",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 L2-3",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-TRANSFER-01",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "TRANSFER",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_TOTAL",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "RATIO_TOTAL"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 90,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 90,
+    "promptText": "原液と水を2:3で混ぜて、合計750mLの飲み物を作ります。原液は十分にあり、水は360mLあります。水はあと何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "まず全体を比の合計で分けます。",
+    "explanation": "全体の比は2+3=5。水は全体の3/5です。\n750×3/(2+3)=450mLが必要です。\n手元の360mLを引き、450−360=90mLを追加します。",
+    "explanationSteps": [
+      "全体の比は2+3=5。水は全体の3/5です。",
+      "750×3/(2+3)=450mLが必要です。",
+      "手元の360mLを引き、450−360=90mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-TOTAL-TRANSFER-1",
+    "transferEligibleByDesign": true,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 TRANSFER-1",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-TRANSFER-02",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "TRANSFER",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_REVERSE",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "REVERSE_RATIO"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 60,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 60,
+    "promptText": "絵の具と水を4:5で混ぜます。水250mLを全部使うとき、絵の具はあと何mL必要ですか。絵の具は140mLあります。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "水を基準に、求める材料の割合を考えます。",
+    "explanation": "水の量は比の5に対応します。先の材料はその4/5倍です。\n250×4/5=200mLが必要です。\n手元の140mLを引き、200−140=60mLを追加します。",
+    "explanationSteps": [
+      "水の量は比の5に対応します。先の材料はその4/5倍です。",
+      "250×4/5=200mLが必要です。",
+      "手元の140mLを引き、200−140=60mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-REVERSE-TRANSFER-2",
+    "transferEligibleByDesign": true,
+    "retentionEligibleByDesign": false,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 TRANSFER-2",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-RETENTION-01",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "RETENTION",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_ADD",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "SET_PROPORTION"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 60,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 60,
+    "promptText": "コーヒー400mLと牛乳100mLがあります。コーヒーと牛乳を5:2で混ぜ、コーヒーを全部使います。牛乳はあと何mL必要ですか。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "比から必要な全量を求めます。「あと」と聞かれたら手元の量を引きます。",
+    "explanation": "先の材料の量は比の5に対応します。後の材料はその2/5倍です。\n400×2/5=160mLが必要です。\n手元の100mLを引き、160−100=60mLを追加します。",
+    "explanationSteps": [
+      "先の材料の量は比の5に対応します。後の材料はその2/5倍です。",
+      "400×2/5=160mLが必要です。",
+      "手元の100mLを引き、160−100=60mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-ADD-RETENTION-1",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": true,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 RETENTION-1",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
+  },
+  {
+    "id": "PB3-MIXTURE-RATIO-RETENTION-02",
+    "examId": "PRACTICE-BANK",
+    "sourceType": "FIXED_PRACTICE",
+    "practiceLevel": "RETENTION",
+    "familyId": "MIXTURE_RATIO",
+    "primarySkill": "WORD_PROBLEM",
+    "primarySkillLabel": "文章題",
+    "subSkill": "MIXTURE_RATIO_REVERSE",
+    "skillTags": [
+      "RATIO",
+      "UNIT_CONVERSION"
+    ],
+    "knowledgeTags": [
+      "mixture ratio"
+    ],
+    "strategyTags": [
+      "REVERSE_RATIO"
+    ],
+    "difficulty": "B",
+    "estimatedMinutesRange": [
+      0.8,
+      2
+    ],
+    "targetRelevance": {
+      "minimum": "MUST",
+      "stable": "MUST",
+      "safe": "MUST"
+    },
+    "practiceNeed": "HIGH",
+    "answerType": "NUMERIC_ANSWER",
+    "answerSpec": {
+      "type": "numeric",
+      "expected": 160,
+      "displayUnit": "mL",
+      "unitScoringStatus": "official_unknown",
+      "verification": "model_authored_and_prompt_recalculated"
+    },
+    "responseSlots": [
+      "value"
+    ],
+    "answerCandidate": 160,
+    "promptText": "原液と水を3:4で混ぜます。水480mLを全部使うとき、原液はあと何mL必要ですか。原液は200mLあります。",
+    "hint1": "どの材料の量が、比のどの数に対応するかを確認します。",
+    "hint2": "水を基準に、求める材料の割合を考えます。",
+    "explanation": "水の量は比の4に対応します。先の材料はその3/4倍です。\n480×3/4=360mLが必要です。\n手元の200mLを引き、360−200=160mLを追加します。",
+    "explanationSteps": [
+      "水の量は比の4に対応します。先の材料はその3/4倍です。",
+      "480×3/4=360mLが必要です。",
+      "手元の200mLを引き、360−200=160mLを追加します。"
+    ],
+    "explanationKeyPoint": "比の向き・必要な全量・追加する量を区別します。",
+    "commonMistakes": [
+      "必要な全量と、あとから追加する量を混同しない。",
+      "全体が与えられた場合は、比の合計を分母にする。"
+    ],
+    "structuralFingerprint": "MIXTURE-RATIO-REVERSE-RETENTION-2",
+    "transferEligibleByDesign": false,
+    "retentionEligibleByDesign": true,
+    "nearDuplicateOf": [],
+    "blockedByFingerprints": [],
+    "sourceDocument": null,
+    "sourcePdfPage": null,
+    "sourcePrintedPage": null,
+    "sourcePageImage": null,
+    "contentVersion": 1,
+    "answerSpecVersion": 1,
+    "answerAmbiguityStatus": "none_detected_in_independent_review",
+    "officialAnswerVerification": "not_available",
+    "solutionVerificationStatus": "model_authored_and_prompt_recalculated",
+    "label": "比と追加量 RETENTION-2",
+    "contentProvenance": "APP_AUTHORED_20261003_NOT_PAST_PAPER"
   }
 ]

@@ -8,7 +8,7 @@ from sympy.parsing.sympy_parser import parse_expr, standard_transformations, imp
 TRANS=standard_transformations+(implicit_multiplication_application,)
 ROOT=Path(__file__).resolve().parent.parent
 items=json.loads((ROOT/'data'/'practice_bank.json').read_text(encoding='utf-8'))
-legacy=[p for p in items if not p['id'].startswith('PB2-')]
+legacy=[p for p in items if not p['id'].startswith(('PB2-','PB3-'))]
 new=[p for p in items if p['id'].startswith('PB2-')]
 
 def ps(s):

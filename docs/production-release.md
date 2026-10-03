@@ -1,7 +1,7 @@
-# v1.0.1: shared Cloud progress
+# v1.0.2: complete mixture-ratio remediation
 
-Adds the Rikkyo school sync profile and a read-only progress projection, using the production-verified Waseda transport at full commit 25c111ed4fc4dcd76b9af5053d6039698271e340. Learning state, all 623 problem IDs, scoring, the practice bank and the pinned math engine are unchanged.
+FY24B Q4(5) previously had no matching fixed practice. Direct source-image reading confirms that it requires converting a ratio into a total requirement and subtracting the amount already available. Add ten app-authored items: three L1, three L2, two structurally different transfer tasks (given total and reversed known component), and two reserved retention tasks. The existing routing now connects all 212 source problems to L1/L2. No new past-paper content or official answers are claimed.
 
-The new canonical manifest pins 65 runtime files. The shared database is rikkyo-uk-progress-sync version 7; Cloud credentials are excluded from portable backups and retained during local reset/import. Results without official point authority are reference accuracy only. FY26B remains learner-unseen according to the existing school policy.
+All original 411 practice records are reconstructed byte-for-byte against the frozen RC2 hash. The ten appended records are declared in data/practice_additions_20261003.json and separately recomputed from their displayed quantities with exact fractions. Existing 212 source questions, IDs, attempts, scoring, storage and the Waseda common engine are unchanged. Existing completed sessions are not rewritten. Review is by the same model plus independent computational checks, not independent human adjudication.
 
-Publication requires exact-main Verify, deployment of that same commit, then two complete regression and production-browser audit rounds at 390px and 1280px. The release workflow records the exact main and successful run URLs below and never moves an existing tag. The v1.0.0 evidence remains in production-release-v1.0.0.md.
+Total: 212 past-paper + 421 practice = 633 IDs; L1 103, L2 171, Transfer 79, Retention 68. Two full local regression/browser rounds and exact-main CI plus two post-deploy rounds are required. Retention tests use a simulated clock, not measured long-term learning outcomes. Previous evidence remains in production-release-v1.0.1.md.
