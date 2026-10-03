@@ -4,9 +4,9 @@ const questions=JSON.parse(fs.readFileSync(path.join(root,'data','questions.json
 const bank=JSON.parse(fs.readFileSync(path.join(root,'data','practice_bank.json'),'utf8'));
 const exams=JSON.parse(fs.readFileSync(path.join(root,'data','exams.json'),'utf8'));
 assert.equal(canonical.contractVersion,1);assert.equal(canonical.schoolId,'rikkyo-uk');
-assert.equal(canonical.exams.length,6);assert.equal(canonical.problems.length,623);
+assert.equal(canonical.exams.length,6);assert.equal(canonical.problems.length,633);
 const ids=canonical.problems.map(p=>p.problemId),sourceIds=canonical.problems.map(p=>p.sourceProblemId);
-assert.equal(new Set(ids).size,623);assert.equal(new Set(sourceIds).size,623);
+assert.equal(new Set(ids).size,633);assert.equal(new Set(sourceIds).size,633);
 assert.deepEqual(new Set(sourceIds),new Set([...questions,...bank].map(x=>x.id)));
 for(const p of canonical.problems){
   assert.equal(p.problemId,p.sourceProblemId);assert.deepEqual(p.schoolEvidence.sourceRecord,[...questions,...bank].find(x=>x.id===p.sourceProblemId));
@@ -20,4 +20,4 @@ assert.equal(canonical.exams.find(e=>e.examId==='R26-MATH-B').role,'evaluation')
 assert.equal(canonical.exams.find(e=>e.examId==='R26-MATH-A').role,'confirmation');
 assert.deepEqual(canonical.problems.filter(p=>p.qualityFlags.includes('REVIEW_REQUIRED')).map(p=>p.problemId),['R26-MATH-A-Q5-3']);
 assert.equal(canonical.problems.filter(p=>p.sourceKind==='past-paper'&&p.explanationSteps.length>=2).length,212);
-console.log('PASS canonical content: 623/623 lineage, 212/212 explanations, A/B isolation, optional score, REVIEW_REQUIRED');
+console.log('PASS canonical content: 633/633 lineage, 212/212 explanations, A/B isolation, optional score, REVIEW_REQUIRED');

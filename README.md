@@ -1,4 +1,4 @@
-# 立教英国学院 数学 — Production Release v1.0.0
+# 立教英国学院 数学 — Production Release v1.0.2
 
 Canonical engine source is pinned in `engine-source.json` at WaseShibu main
 `801791fc8e45862e946d920255d67b90d4f273ff`. The original RC2
@@ -6,19 +6,19 @@ files remain authoritative migration input and audit evidence; deployment
 generates the one-to-one normalized `data/canonical_content.json` runtime
 package deterministically.
 
-FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0の目標量を満たす固定類題Bank 411問を統合したProduction Release（非公式学習版）。
+FY24-FY26 数学A/B 6試験の過去問212問と、Learning Design Freeze v1.0の既存411問に比の追加練習10問を加えた固定類題Bank 421問を統合したProduction Release（非公式学習版）。
 
 公開判定と監査証跡: [production-release.md](docs/production-release.md) / [release.json](release.json)。検索掲載は行わず、noindexを維持します。
 
 ## 現在のコンテンツ
 - 過去問: **212問**
 - 過去問の完全段階解説: **212/212問** (`AUTHORED_SOURCE_GROUNDED_V1`)
-- 固定類題Bank: **411問**
-  - L1: 100問
-  - L2: 168問
-  - Clean Transfer: 77問
-  - Retention: 66問
-- 合計: **623 Problem IDs**
+- 固定類題Bank: **421問**
+  - L1: 103問
+  - L2: 171問
+  - Clean Transfer: 79問
+  - Retention: 68問
+- 合計: **633 Problem IDs**
 - 原本PDF参照ページ画像: 31枚（212問すべて原本ページへリンク）
 - テキスト転記prompt: 26問。その他は原本ページ画像を問題文の基準にする。
 
@@ -107,8 +107,8 @@ Learning Design Freeze v1.0で予定していた固定Practice Bankの規模ま�
 - L2: 168
 - Clean Transfer: 77
 - Retention: 66
-- 合計: 411
-- 過去問212と合わせて623 Problem IDs
+- 合計: 421
+- 過去問212と合わせて633 Problem IDs
 
 新規351問は、generatorの計算結果だけに依存せず、問題文から数値を再抽出して別ロジックで再計算する独立QAを実施。
 生成時に見つかった相対度数の丸め誤差・平方根問題の変数未指定・二等辺三角形角度の整数化・相似比の大小表現を修正後、351/351 CLEAN。
@@ -188,8 +188,8 @@ Release Candidate gate.
 
 - 過去問: 212/212
 - 過去問段階解説: 212/212
-- Fixed Practice Bank: 411/411
-- Total Problem IDs: 623
+- Fixed Practice Bank: 421/421
+- Total Problem IDs: 633
 - Official answer key: なし（完成条件から除外済み）
 - Answer authority: 原本 + 独立解答 + 数学的再検算
 - FY26A Q5(3): 曖昧性フラグ / REVIEW_REQUIREDを維持

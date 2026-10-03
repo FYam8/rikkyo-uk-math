@@ -1,7 +1,7 @@
 {
-  "version": "v1.0.1",
+  "version": "v1.0.2",
   "status": "PRODUCTION RELEASE APPROVED",
-  "canonicalManifestSha256": "2b261136fc7393d45723f71b37b7f4571db847d5142bd4a54420f31fa6173868",
+  "canonicalManifestSha256": "ed72b54f78f2b52b9422bec51a37567556c0d2082cbd31d860ffdd67602053e1",
   "rc2BaselineSha256": "30f0d3f8b5944d0875512e82dc169c945e4c9f05cfd6985e1c4bae4f6a605648",
   "engineCommit": "801791fc8e45862e946d920255d67b90d4f273ff",
   "productionUrl": "https://fyam8.github.io/rikkyo-uk-math/",
@@ -10,12 +10,12 @@
   "invariants": {
     "pastQuestions": 212,
     "authoredExplanations": 212,
-    "practiceBank": 411,
-    "L1": 100,
-    "L2": 168,
-    "Transfer": 77,
-    "Retention": 66,
-    "problemIds": 623,
+    "practiceBank": 421,
+    "L1": 103,
+    "L2": 171,
+    "Transfer": 79,
+    "Retention": 68,
+    "problemIds": 633,
     "sourcePages": 31,
     "ambiguityId": "R26-MATH-A-Q5-3",
     "ambiguityStatus": "REVIEW_REQUIRED",
@@ -23,12 +23,10 @@
   },
   "finalTagPolicy": "Tag the exact final main only after its Verify and Pages workflows, including both post-deploy audit rounds, succeed.",
   "previousRelease": {
-    "version": "v1.0.0",
-    "auditedRuntimeCommit": "e61437bb8ba67a3f2fe66180f0ef53585482aafa",
-    "verifyRunId": 36180530891,
-    "pagesAndCleanRoundsRunId": 36180530820
+    "version": "v1.0.1",
+    "auditedRuntimeCommit": "84a17a8270cbfa63897d693d340c2bba4191c737"
   },
   "sharedProgressCommit": "25c111ed4fc4dcd76b9af5053d6039698271e340",
   "requiredPostDeployCleanRounds": 2,
-  "approvalScope": "Candidate regression and desktop/mobile browser audit passed. Publishing the release requires exact-main Verify and successful Pages workflow with two post-deploy CLEAN rounds."
+  "approvalScope": "Two local complete 32-command regression and real HTTP desktop/mobile rounds passed for the append-only mixture candidate. Exact-main Verify and post-deploy two CLEAN rounds remain required."
 }
